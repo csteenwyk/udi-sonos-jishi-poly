@@ -537,19 +537,12 @@ class Controller(udi_interface.Node):
                 new_zone_names.append(name)
         self.zone_names = new_zone_names
 
-        # Fetch content lists and update profile; if profile was pushed,
-        # wait for ISY to finish installing it before adding nodes.
-        if self._refresh_content(force=True):
-            LOGGER.info('Waiting for ISY to install profile...')
-            time.sleep(5)
-
-        # Re-add controller after profile is confirmed installed.
-        # The __init__ attempt fails on first install (profile not in ISY yet);
-        # this call succeeds and is a no-op on subsequent discovers.
+        # Add nodes FIRST using the pre-installed static profile.
+        # updateProfile() is called afterward so it doesn't interfere
+        # with ISY accepting new nodes.
         self.poly.addNode(self, conn_status='ST')
         time.sleep(1)
 
-        # Add/update speaker nodes
         for zone in zones:
             zone_name = (zone.get('coordinator', {}).get('roomName')
                          or zone.get('roomName', ''))
@@ -571,6 +564,10 @@ class Controller(udi_interface.Node):
             self._speakers[address].update_group_state(zone.get('groupState', {}))
 
         LOGGER.info(f"Discovery complete — {len(self._speakers)} zones")
+
+        # Now refresh content and push updated NLS/editors to ISY.
+        # Done after addNode so the profile update doesn't block node creation.
+        self._refresh_content(force=True)
 
     def _refresh_content(self, force=False):
         """Fetch favorites/playlists from Jishi; update ISY profile if changed."""
