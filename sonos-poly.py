@@ -44,7 +44,6 @@ CMD-sonos_controller-RESUME_ALL-NAME = Resume All
 CMD-sonos_controller-UNGROUP_ALL-NAME = Ungroup All
 CMD-sonos_controller-PARTY-NAME = Party Mode
 CMD-sonos_controller-SAY_ALL-NAME = Say All
-CMD-sonos_controller-SAY_ALL-0-NAME = Phrase
 CMD-sonos_controller-REFRESH_CONTENT-NAME = Refresh Content
 
 # Speaker Drivers
@@ -66,38 +65,21 @@ ST-sonos_speaker-GV12-NAME = Members
 # Speaker Commands
 CMD-sonos_speaker-DON-NAME = Play
 CMD-sonos_speaker-DOF-NAME = Pause
-CMD-sonos_speaker-STOP-NAME = Stop
 CMD-sonos_speaker-NEXT-NAME = Next Track
 CMD-sonos_speaker-PREV-NAME = Previous Track
 CMD-sonos_speaker-SET_VOL-NAME = Set Volume
-CMD-sonos_speaker-SET_VOL-0-NAME = Volume
-CMD-sonos_speaker-VOL_UP-NAME = Volume Up
-CMD-sonos_speaker-VOL_DOWN-NAME = Volume Down
-CMD-sonos_speaker-SET_BASS-NAME = Set Bass
-CMD-sonos_speaker-SET_BASS-0-NAME = Level
-CMD-sonos_speaker-SET_TREBLE-NAME = Set Treble
-CMD-sonos_speaker-SET_TREBLE-0-NAME = Level
-CMD-sonos_speaker-MUTE-NAME = Mute
-CMD-sonos_speaker-UNMUTE-NAME = Unmute
-CMD-sonos_speaker-PLAY_PAUSE-NAME = Play / Pause Toggle
 CMD-sonos_speaker-SET_GRP_VOL-NAME = Set Group Volume
-CMD-sonos_speaker-SET_GRP_VOL-0-NAME = Volume
-CMD-sonos_speaker-SHUFFLE_ON-NAME = Shuffle On
-CMD-sonos_speaker-SHUFFLE_OFF-NAME = Shuffle Off
+CMD-sonos_speaker-SET_BASS-NAME = Set Bass
+CMD-sonos_speaker-SET_TREBLE-NAME = Set Treble
+CMD-sonos_speaker-MUTE-NAME = Mute
+CMD-sonos_speaker-SHUFFLE-NAME = Shuffle
 CMD-sonos_speaker-REPEAT-NAME = Set Repeat
-CMD-sonos_speaker-REPEAT-0-NAME = Mode
-CMD-sonos_speaker-CROSSFADE_ON-NAME = Crossfade On
-CMD-sonos_speaker-CROSSFADE_OFF-NAME = Crossfade Off
+CMD-sonos_speaker-CROSSFADE-NAME = Crossfade
 CMD-sonos_speaker-PLAY_FAVORITE-NAME = Play Favorite
-CMD-sonos_speaker-PLAY_FAVORITE-0-NAME = Favorite
 CMD-sonos_speaker-PLAY_PLAYLIST-NAME = Play Playlist
-CMD-sonos_speaker-PLAY_PLAYLIST-0-NAME = Playlist
 CMD-sonos_speaker-SAY-NAME = Say (TTS)
-CMD-sonos_speaker-SAY-0-NAME = Phrase
 CMD-sonos_speaker-SLEEP-NAME = Sleep Timer
-CMD-sonos_speaker-SLEEP-0-NAME = Duration
 CMD-sonos_speaker-JOIN-NAME = Join Zone
-CMD-sonos_speaker-JOIN-0-NAME = Zone
 CMD-sonos_speaker-LEAVE-NAME = Leave Group
 CMD-sonos_speaker-PARTY-NAME = Party Mode
 
@@ -335,18 +317,14 @@ class SpeakerNode(udi_interface.Node):
             self.reportDrivers()
 
     # --- Transport ---
-    def cmd_play(self, command):      self._cmd('play')
-    def cmd_pause(self, command):     self._cmd('pause')
-    def cmd_playpause(self, command): self._cmd('playpause')
-    def cmd_stop(self, command):      self._cmd('stop')
-    def cmd_next(self, command):      self._cmd('next')
-    def cmd_prev(self, command):      self._cmd('previous')
+    def cmd_play(self, command):  self._cmd('play')
+    def cmd_pause(self, command): self._cmd('pause')
+    def cmd_next(self, command):  self._cmd('next')
+    def cmd_prev(self, command):  self._cmd('previous')
 
     # --- Volume ---
     def cmd_set_vol(self, command):
         self._cmd(f"volume/{int(command.get('value', 0))}")
-    def cmd_vol_up(self, command):   self._cmd('volume/+2')
-    def cmd_vol_down(self, command): self._cmd('volume/-2')
     def cmd_set_group_vol(self, command):
         self._cmd(f"groupVolume/{int(command.get('value', 0))}")
 
@@ -356,13 +334,12 @@ class SpeakerNode(udi_interface.Node):
     def cmd_set_treble(self, command):
         self._cmd(f"treble/{int(command.get('value', 0))}")
 
-    # --- Mute ---
-    def cmd_mute(self, command):   self._cmd('mute')
-    def cmd_unmute(self, command): self._cmd('unmute')
+    # --- Play mode toggles (single command with bool param) ---
+    def cmd_mute(self, command):
+        self._cmd('mute' if int(command.get('value', 0)) else 'unmute')
 
-    # --- Play modes ---
-    def cmd_shuffle_on(self, command):  self._cmd('shuffle/on')
-    def cmd_shuffle_off(self, command): self._cmd('shuffle/off')
+    def cmd_shuffle(self, command):
+        self._cmd('shuffle/on' if int(command.get('value', 0)) else 'shuffle/off')
 
     def cmd_repeat(self, command):
         modes = {0: 'none', 1: 'one', 2: 'all'}
@@ -370,8 +347,8 @@ class SpeakerNode(udi_interface.Node):
         # Jishi repeat only supports on/off — map none/all → off, one → on
         self._cmd(f"repeat/{'off' if mode == 'none' else 'on'}")
 
-    def cmd_crossfade_on(self, command):  self._cmd('crossfade/on')
-    def cmd_crossfade_off(self, command): self._cmd('crossfade/off')
+    def cmd_crossfade(self, command):
+        self._cmd('crossfade/on' if int(command.get('value', 0)) else 'crossfade/off')
 
     # --- Content (0-based index matches NLS CUST_FAV-N etc.) ---
     def cmd_play_favorite(self, command):
@@ -428,23 +405,16 @@ class SpeakerNode(udi_interface.Node):
     commands = {
         'DON':           cmd_play,
         'DOF':           cmd_pause,
-        'PLAY_PAUSE':    cmd_playpause,
-        'STOP':          cmd_stop,
         'NEXT':          cmd_next,
         'PREV':          cmd_prev,
         'SET_VOL':       cmd_set_vol,
-        'VOL_UP':        cmd_vol_up,
-        'VOL_DOWN':      cmd_vol_down,
         'SET_GRP_VOL':   cmd_set_group_vol,
         'SET_BASS':      cmd_set_bass,
         'SET_TREBLE':    cmd_set_treble,
         'MUTE':          cmd_mute,
-        'UNMUTE':        cmd_unmute,
-        'SHUFFLE_ON':    cmd_shuffle_on,
-        'SHUFFLE_OFF':   cmd_shuffle_off,
+        'SHUFFLE':       cmd_shuffle,
         'REPEAT':        cmd_repeat,
-        'CROSSFADE_ON':  cmd_crossfade_on,
-        'CROSSFADE_OFF': cmd_crossfade_off,
+        'CROSSFADE':     cmd_crossfade,
         'PLAY_FAVORITE': cmd_play_favorite,
         'PLAY_PLAYLIST': cmd_play_playlist,
         'SAY':           cmd_say,
