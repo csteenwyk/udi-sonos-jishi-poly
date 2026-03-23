@@ -7,9 +7,7 @@
     "description": "Sonos control via Jishi HTTP API. Works across VLANs. Favorites and playlists shown by name in ISY UI.",
     "shortPoll": "10",
     "longPoll": "120",
-    "testMode": false,
     "logLevel": "INFO",
-    "profile_version": "3",
     "customParams": {
         "jishi_url": "http://localhost:5005",
         "tts_1": "",
