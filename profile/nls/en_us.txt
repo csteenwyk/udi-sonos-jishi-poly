@@ -5,24 +5,30 @@ ND-sonos-speaker-NAME = Sonos Speaker
 # Controller Drivers
 ST-sonos-controller-ST-NAME = Status
 
-# Speaker Drivers
-ST-sonos-speaker-ST-NAME = Playback State
-ST-sonos-speaker-SVOL-NAME = Volume
-ST-sonos-speaker-GV1-NAME = Bass
-ST-sonos-speaker-GV2-NAME = Treble
-ST-sonos-speaker-GV3-NAME = Mute
-ST-sonos-speaker-GV4-NAME = Shuffle
-ST-sonos-speaker-GV5-NAME = Repeat
-ST-sonos-speaker-GV6-NAME = Crossfade
-ST-sonos-speaker-GV7-NAME = Loudness
-ST-sonos-speaker-GV8-NAME = Track Title
-ST-sonos-speaker-GV9-NAME = Artist
-ST-sonos-speaker-GV10-NAME = Album / Station
-
 # Controller Commands
 CMD-sonos-controller-DISCOVER-NAME = Re-Discover
 CMD-sonos-controller-PAUSE_ALL-NAME = Pause All
 CMD-sonos-controller-RESUME_ALL-NAME = Resume All
+CMD-sonos-controller-UNGROUP_ALL-NAME = Ungroup All
+CMD-sonos-controller-PARTY-NAME = Party Mode
+CMD-sonos-controller-SAY_ALL-NAME = Say All
+CMD-sonos-controller-REFRESH_CONTENT-NAME = Refresh Content
+
+# Speaker Drivers
+ST-sonos-speaker-ST-NAME = Playback State
+ST-sonos-speaker-SVOL-NAME = Volume
+ST-sonos-speaker-GV1-NAME = Group Volume
+ST-sonos-speaker-GV2-NAME = Bass
+ST-sonos-speaker-GV3-NAME = Treble
+ST-sonos-speaker-GV4-NAME = Mute
+ST-sonos-speaker-GV5-NAME = Group Mute
+ST-sonos-speaker-GV6-NAME = Shuffle
+ST-sonos-speaker-GV7-NAME = Repeat
+ST-sonos-speaker-GV8-NAME = Crossfade
+ST-sonos-speaker-GV9-NAME = Loudness
+ST-sonos-speaker-GV10-NAME = Nightmode
+ST-sonos-speaker-GV11-NAME = Speech Enhancement
+ST-sonos-speaker-GV12-NAME = Members
 
 # Speaker Commands
 CMD-sonos-speaker-DON-NAME = Play
@@ -37,27 +43,33 @@ CMD-sonos-speaker-SET_BASS-NAME = Set Bass
 CMD-sonos-speaker-SET_TREBLE-NAME = Set Treble
 CMD-sonos-speaker-MUTE-NAME = Mute
 CMD-sonos-speaker-UNMUTE-NAME = Unmute
+CMD-sonos-speaker-PLAY_PAUSE-NAME = Play / Pause Toggle
+CMD-sonos-speaker-SET_GRP_VOL-NAME = Set Group Volume
 CMD-sonos-speaker-SHUFFLE_ON-NAME = Shuffle On
 CMD-sonos-speaker-SHUFFLE_OFF-NAME = Shuffle Off
 CMD-sonos-speaker-REPEAT-NAME = Set Repeat
-CMD-sonos-speaker-CROSSFADE-NAME = Toggle Crossfade
+CMD-sonos-speaker-CROSSFADE_ON-NAME = Crossfade On
+CMD-sonos-speaker-CROSSFADE_OFF-NAME = Crossfade Off
 CMD-sonos-speaker-PLAY_FAVORITE-NAME = Play Favorite
 CMD-sonos-speaker-PLAY_PLAYLIST-NAME = Play Playlist
 CMD-sonos-speaker-SAY-NAME = Say (TTS)
 CMD-sonos-speaker-SLEEP-NAME = Sleep Timer
+CMD-sonos-speaker-JOIN-NAME = Join Zone
+CMD-sonos-speaker-LEAVE-NAME = Leave Group
+CMD-sonos-speaker-PARTY-NAME = Party Mode
 
-# Playback State index values
+# Playback State index values (UOM 25)
 CUST_PB-0 = Stopped
 CUST_PB-1 = Playing
-CUST_PB-2 = Paused
-CUST_PB-3 = Transitioning
+CUST_PB-2 = Transitioning
+CUST_PB-3 = Paused
 
-# Repeat mode index values
+# Repeat mode index values (UOM 25)
 CUST_REPEAT-0 = None
 CUST_REPEAT-1 = One
 CUST_REPEAT-2 = All
 
-# Sleep timer index values
+# Sleep timer index values (UOM 25)
 CUST_SLEEP-0 = Off
 CUST_SLEEP-15 = 15 min
 CUST_SLEEP-30 = 30 min
@@ -65,7 +77,14 @@ CUST_SLEEP-45 = 45 min
 CUST_SLEEP-60 = 60 min
 CUST_SLEEP-90 = 90 min
 
-# Dynamic — populated at runtime by sonos-poly.py
+# Dynamic — Favorites
 CUST_FAV-0 = (loading...)
+
+# Dynamic — Playlists
 CUST_PL-0 = (loading...)
-CUST_TTS-0 = (loading...)
+
+# Dynamic — TTS Phrases
+CUST_TTS-0 = (not configured)
+
+# Dynamic — Zones (for Join)
+CUST_ZONE-0 = (loading...)

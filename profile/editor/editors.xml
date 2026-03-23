@@ -46,4 +46,8 @@
   <editor id="E_TTS">
     <range uom="25" subset="0" nls="CUST_TTS"/>
   </editor>
+
+  <editor id="E_ZONES">
+    <range uom="25" subset="0" nls="CUST_ZONE"/>
+  </editor>
 </editors>
