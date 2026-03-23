@@ -1,50 +1,64 @@
 # udi-sonos-jishi-poly
 
-Polyglot v3 NodeServer for Sonos, using [node-sonos-http-api](https://github.com/jishi/node-sonos-http-api) (Jishi) as the backend.
+MIT License — Polyglot v3 NodeServer for Sonos, using [node-sonos-http-api](https://github.com/jishi/node-sonos-http-api) (Jishi) as the backend.
+
+## Why not the other Sonos plugins?
+
+**udi-sonos-poly** uses the `soco` Python library for direct UPnP communication. It crashes on stereo pairs (L/R satellites return empty UPnP responses), leaks threads, and requires multicast discovery — all of which fail across VLANs.
+
+**ST-Sonos** uses the `sonos-discovery` Node.js library which relies on UPnP push subscriptions: speakers must initiate TCP callbacks to the PG3x server. If your Sonos speakers and PG3x server are on different VLANs and inbound connections from speakers are blocked, state updates never arrive and ISY goes stale.
+
+**This plugin** polls Jishi's `/zones` endpoint every 10 seconds. One HTTP call returns the current state of every zone simultaneously. No UPnP subscriptions, no multicast, no inbound connections from speakers required — just outbound HTTP from PG3x to your Jishi host. State in ISY is always accurate within one poll cycle.
 
 ## Why Jishi?
 
-- Works across VLANs — no UPnP subscriptions, no multicast discovery needed
-- Stereo pairs (L/R) and surround sets handled as a single zone automatically
-- TTS (Google text-to-speech) built in
-- One `/zones` HTTP call updates all speakers simultaneously
+- **Works across VLANs** — only needs outbound HTTP from PG3x to Jishi (port 5005)
+- **Stereo pairs handled natively** — Jishi merges L/R pairs and surround sets into single zones
+- **Real-time state detection** — polling catches state changes initiated from the Sonos app, Alexa, or any other source within 10 seconds
+- **Dynamic ISY UI** — favorites, playlists, TTS phrases, and zone names are fetched from Jishi and shown by their real names in ISY Admin Console dropdowns
+- **TTS built in** — Jishi handles Google TTS; the Jishi host serves audio directly to speakers on the Sonos VLAN
+- **One call covers everything** — `/zones` returns all zone states in a single request
 
 ## Requirements
 
-- [node-sonos-http-api](https://github.com/jishi/node-sonos-http-api) running and reachable from your PG3 server
-- Python 3 + `requests` + `udi_interface`
+- [node-sonos-http-api](https://github.com/jishi/node-sonos-http-api) running and reachable from your PG3x server
+- Jishi host must be on the same network as your Sonos speakers (or otherwise able to reach them)
+- Python 3.9+ with `requests` and `udi_interface`
 
 ## Installation
 
-Install via the Polyglot v3 store, or manually:
+Install via the Polyglot v3 local store (requires UDI developer account), or clone directly on your eisy:
 
 ```bash
-cd /path/to/pg3/nodeservers
-git clone https://github.com/csteenwyk/udi-sonos-jishi-poly
+cd /home/admin
+git clone https://github.com/csteenwyk/udi-sonos-jishi-poly.git
 cd udi-sonos-jishi-poly
 pip3 install -r requirements.txt
+chmod +x sonos-poly.py
 ```
 
 ## Configuration
 
-Set these in the NodeServer's **Custom Parameters** in the PG3 UI:
+Set these in the NodeServer's **Custom Parameters** in the PG3x UI:
 
 | Key | Example | Description |
 |-----|---------|-------------|
-| `jishi_url` | `http://zeus:5005` | URL of your Jishi server |
-| `favorite_1` … `favorite_10` | `96.9 \| 97 LAV-FM` | Sonos favorite names (exact match) |
-| `playlist_1` … `playlist_10` | `White Noise` | Sonos playlist names (exact match) |
-| `tts_1` … `tts_10` | `Dinner is ready` | TTS phrases for the SAY command |
+| `jishi_url` | `http://zeus:5005` | URL of your Jishi server **(required)** |
+| `tts_1` … `tts_10` | `Dinner is ready` | TTS phrases for the SAY / SAY ALL commands |
 
-Favorite and playlist names must match exactly what appears in your Sonos app.
-If no favorites/playlists are configured, the nodeserver will auto-populate from Jishi on long poll.
+Favorites and playlists are **automatically fetched from Jishi** — no manual configuration needed. They appear by name in the ISY UI and refresh on every long poll (default: every 2 minutes).
 
 ## Nodes
 
 ### Controller
-- **Pause All** — pauses every zone
-- **Resume All** — resumes all previously playing zones
-- **Re-Discover** — re-queries Jishi and creates any new zone nodes
+| Command | Description |
+|---------|-------------|
+| Re-Discover | Re-query Jishi, create any new zone nodes |
+| Pause All | Pause every zone |
+| Resume All | Resume all previously playing zones |
+| Ungroup All | Break every group — all zones become independent |
+| Party Mode | Join all zones to the first zone |
+| Say All | Speak a TTS phrase on every speaker simultaneously |
 
 ### Speaker (one per Jishi zone)
 
@@ -52,22 +66,61 @@ If no favorites/playlists are configured, the nodeserver will auto-populate from
 
 | Driver | Description |
 |--------|-------------|
-| ST | Playback state (Stopped / Playing / Paused / Transitioning) |
-| SVOL | Volume (0–100) |
-| GV1 | Bass (-10 to 10) |
-| GV2 | Treble (-10 to 10) |
-| GV3 | Mute |
-| GV4 | Shuffle |
-| GV5 | Repeat (None / One / All) |
-| GV6 | Crossfade |
-| GV7 | Loudness |
-| GV8 | Track Title |
-| GV9 | Artist |
-| GV10 | Album / Station |
+| ST | Playback state: Stopped / Playing / Transitioning / Paused |
+| SVOL | Player volume (0–100) |
+| GV1 | Group volume (0–100) |
+| GV2 | Bass (-10 to 10) |
+| GV3 | Treble (-10 to 10) |
+| GV4 | Mute |
+| GV5 | Group Mute |
+| GV6 | Shuffle |
+| GV7 | Repeat (None / One / All) |
+| GV8 | Crossfade |
+| GV9 | Loudness |
+| GV10 | Nightmode |
+| GV11 | Speech Enhancement |
+| GV12 | Members in group |
 
-**Commands:** Play, Pause, Stop, Next, Previous, Set Volume, Volume Up/Down, Set Bass, Set Treble, Mute, Unmute, Shuffle On/Off, Set Repeat, Toggle Crossfade, Play Favorite (slot 1-10), Play Playlist (slot 1-10), Say/TTS (slot 1-10), Sleep Timer
+**Commands:**
+
+| Command | Description |
+|---------|-------------|
+| Play / Pause / Stop | Transport control |
+| Next / Previous | Skip tracks |
+| Set Volume / Up / Down | Volume control |
+| Set Bass / Treble | EQ control |
+| Mute / Unmute | Mute toggle |
+| Shuffle On / Off | Shuffle control |
+| Set Repeat | None / One / All |
+| Toggle Crossfade | Crossfade on/off |
+| Play Favorite | Pick by name from ISY dropdown |
+| Play Playlist | Pick by name from ISY dropdown |
+| Say (TTS) | Speak a configured phrase on this speaker |
+| Sleep Timer | Off / 15 / 30 / 45 / 60 / 90 min |
+| Join Zone | Join this speaker's audio to any other zone (by name) |
+| Leave Group | Remove this speaker from its current group |
+| Party Mode | Join all other zones to this speaker |
+
+## ISY Programs
+
+Because playback state is a proper driver (ST), you can trigger ISY programs directly:
+
+```
+If 'Family Room' ST is Playing
+Then ...
+
+If 'David's Room' ST is not Playing
+Then ...
+```
+
+State updates within ~10 seconds of any change — whether initiated from the Sonos app, Alexa, another plugin, or an ISY program.
 
 ## Network Notes
 
-The PG3 server only needs outbound HTTP access to the Jishi host (default port 5005).
-Jishi must be on a network that can reach your Sonos speakers (typically the same VLAN as the speakers).
+```
+ISY / PG3x server  →  (outbound HTTP port 5005)  →  Jishi host  →  (UPnP port 1400)  →  Sonos speakers
+```
+
+PG3x only needs outbound HTTP access to the Jishi host. The Jishi host needs to be on the same VLAN as your speakers (or otherwise reachable via UPnP). No inbound connections from speakers to PG3x are required.
+
+For TTS, Jishi fetches audio from Google and serves it locally. Speakers retrieve the audio directly from the Jishi host — no internet access required from speakers at playback time.
