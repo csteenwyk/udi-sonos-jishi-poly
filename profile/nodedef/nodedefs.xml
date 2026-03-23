@@ -17,6 +17,7 @@
         <command id="SAY_ALL">
           <p id="0" editor="E_TTS"/>
         </command>
+        <command id="REFRESH_CONTENT"/>
       </accepts>
     </commands>
   </nodeDef>

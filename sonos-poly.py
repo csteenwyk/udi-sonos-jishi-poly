@@ -43,6 +43,7 @@ CMD-sonos-controller-RESUME_ALL-NAME = Resume All
 CMD-sonos-controller-UNGROUP_ALL-NAME = Ungroup All
 CMD-sonos-controller-PARTY-NAME = Party Mode
 CMD-sonos-controller-SAY_ALL-NAME = Say All
+CMD-sonos-controller-REFRESH_CONTENT-NAME = Refresh Content
 
 # Speaker Drivers
 ST-sonos-speaker-ST-NAME = Playback State
@@ -455,13 +456,14 @@ class Controller(udi_interface.Node):
     ]
 
     commands = {
-        'DISCOVER':    'discover',
-        'PAUSE_ALL':   'cmd_pause_all',
-        'RESUME_ALL':  'cmd_resume_all',
-        'UNGROUP_ALL': 'cmd_ungroup_all',
-        'PARTY':       'cmd_party_all',
-        'SAY_ALL':     'cmd_say_all',
-        'QUERY':       'query',
+        'DISCOVER':        'discover',
+        'PAUSE_ALL':       'cmd_pause_all',
+        'RESUME_ALL':      'cmd_resume_all',
+        'UNGROUP_ALL':     'cmd_ungroup_all',
+        'PARTY':           'cmd_party_all',
+        'SAY_ALL':         'cmd_say_all',
+        'REFRESH_CONTENT': 'cmd_refresh_content',
+        'QUERY':           'query',
     }
 
     def __init__(self, polyglot, primary, address, name):
@@ -636,6 +638,11 @@ class Controller(udi_interface.Node):
             _jishi_cmd(self._jishi_url, f"/sayall/{_enc(phrase)}")
         else:
             LOGGER.warning(f"SAY_ALL: TTS index {idx} not configured")
+
+    def cmd_refresh_content(self, command):
+        """Manually trigger an immediate content refresh (favorites, playlists, TTS)."""
+        LOGGER.info('Manual content refresh triggered')
+        self._refresh_content(force=True)
 
     def query(self, command=None):
         self.reportDrivers()
