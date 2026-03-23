@@ -44,6 +44,7 @@ CMD-sonos_controller-RESUME_ALL-NAME = Resume All
 CMD-sonos_controller-UNGROUP_ALL-NAME = Ungroup All
 CMD-sonos_controller-PARTY-NAME = Party Mode
 CMD-sonos_controller-SAY_ALL-NAME = Say All
+CMD-sonos_controller-SAY_ALL-0-NAME = Phrase
 CMD-sonos_controller-REFRESH_CONTENT-NAME = Refresh Content
 
 # Speaker Drivers
@@ -69,24 +70,34 @@ CMD-sonos_speaker-STOP-NAME = Stop
 CMD-sonos_speaker-NEXT-NAME = Next Track
 CMD-sonos_speaker-PREV-NAME = Previous Track
 CMD-sonos_speaker-SET_VOL-NAME = Set Volume
+CMD-sonos_speaker-SET_VOL-0-NAME = Volume
 CMD-sonos_speaker-VOL_UP-NAME = Volume Up
 CMD-sonos_speaker-VOL_DOWN-NAME = Volume Down
 CMD-sonos_speaker-SET_BASS-NAME = Set Bass
+CMD-sonos_speaker-SET_BASS-0-NAME = Level
 CMD-sonos_speaker-SET_TREBLE-NAME = Set Treble
+CMD-sonos_speaker-SET_TREBLE-0-NAME = Level
 CMD-sonos_speaker-MUTE-NAME = Mute
 CMD-sonos_speaker-UNMUTE-NAME = Unmute
 CMD-sonos_speaker-PLAY_PAUSE-NAME = Play / Pause Toggle
 CMD-sonos_speaker-SET_GRP_VOL-NAME = Set Group Volume
+CMD-sonos_speaker-SET_GRP_VOL-0-NAME = Volume
 CMD-sonos_speaker-SHUFFLE_ON-NAME = Shuffle On
 CMD-sonos_speaker-SHUFFLE_OFF-NAME = Shuffle Off
 CMD-sonos_speaker-REPEAT-NAME = Set Repeat
+CMD-sonos_speaker-REPEAT-0-NAME = Mode
 CMD-sonos_speaker-CROSSFADE_ON-NAME = Crossfade On
 CMD-sonos_speaker-CROSSFADE_OFF-NAME = Crossfade Off
 CMD-sonos_speaker-PLAY_FAVORITE-NAME = Play Favorite
+CMD-sonos_speaker-PLAY_FAVORITE-0-NAME = Favorite
 CMD-sonos_speaker-PLAY_PLAYLIST-NAME = Play Playlist
+CMD-sonos_speaker-PLAY_PLAYLIST-0-NAME = Playlist
 CMD-sonos_speaker-SAY-NAME = Say (TTS)
+CMD-sonos_speaker-SAY-0-NAME = Phrase
 CMD-sonos_speaker-SLEEP-NAME = Sleep Timer
+CMD-sonos_speaker-SLEEP-0-NAME = Duration
 CMD-sonos_speaker-JOIN-NAME = Join Zone
+CMD-sonos_speaker-JOIN-0-NAME = Zone
 CMD-sonos_speaker-LEAVE-NAME = Leave Group
 CMD-sonos_speaker-PARTY-NAME = Party Mode
 
@@ -276,42 +287,41 @@ class SpeakerNode(udi_interface.Node):
         {'driver': 'GV12', 'value': 0, 'uom': 56},  # Members in group
     ]
 
-    commands = {
-        'DON':           'cmd_play',
-        'DOF':           'cmd_pause',
-        'PLAY_PAUSE':    'cmd_playpause',
-        'STOP':          'cmd_stop',
-        'NEXT':          'cmd_next',
-        'PREV':          'cmd_prev',
-        'SET_VOL':       'cmd_set_vol',
-        'VOL_UP':        'cmd_vol_up',
-        'VOL_DOWN':      'cmd_vol_down',
-        'SET_GRP_VOL':   'cmd_set_group_vol',
-        'SET_BASS':      'cmd_set_bass',
-        'SET_TREBLE':    'cmd_set_treble',
-        'MUTE':          'cmd_mute',
-        'UNMUTE':        'cmd_unmute',
-        'SHUFFLE_ON':    'cmd_shuffle_on',
-        'SHUFFLE_OFF':   'cmd_shuffle_off',
-        'REPEAT':        'cmd_repeat',
-        'CROSSFADE_ON':  'cmd_crossfade_on',
-        'CROSSFADE_OFF': 'cmd_crossfade_off',
-        'PLAY_FAVORITE': 'cmd_play_favorite',
-        'PLAY_PLAYLIST': 'cmd_play_playlist',
-        'SAY':           'cmd_say',
-        'SLEEP':         'cmd_sleep',
-        'JOIN':          'cmd_join',
-        'LEAVE':         'cmd_leave',
-        'PARTY':         'cmd_party',
-        'QUERY':         'query',
-    }
-
     def __init__(self, polyglot, primary, address, name, zone_name, jishi_url, controller):
         super().__init__(polyglot, primary, address, name)
         self.zone_name = zone_name
         self.jishi_url = jishi_url
         self._ctrl = controller
         self._zp = _enc(zone_name)
+        self.commands = {
+            'DON':           self.cmd_play,
+            'DOF':           self.cmd_pause,
+            'PLAY_PAUSE':    self.cmd_playpause,
+            'STOP':          self.cmd_stop,
+            'NEXT':          self.cmd_next,
+            'PREV':          self.cmd_prev,
+            'SET_VOL':       self.cmd_set_vol,
+            'VOL_UP':        self.cmd_vol_up,
+            'VOL_DOWN':      self.cmd_vol_down,
+            'SET_GRP_VOL':   self.cmd_set_group_vol,
+            'SET_BASS':      self.cmd_set_bass,
+            'SET_TREBLE':    self.cmd_set_treble,
+            'MUTE':          self.cmd_mute,
+            'UNMUTE':        self.cmd_unmute,
+            'SHUFFLE_ON':    self.cmd_shuffle_on,
+            'SHUFFLE_OFF':   self.cmd_shuffle_off,
+            'REPEAT':        self.cmd_repeat,
+            'CROSSFADE_ON':  self.cmd_crossfade_on,
+            'CROSSFADE_OFF': self.cmd_crossfade_off,
+            'PLAY_FAVORITE': self.cmd_play_favorite,
+            'PLAY_PLAYLIST': self.cmd_play_playlist,
+            'SAY':           self.cmd_say,
+            'SLEEP':         self.cmd_sleep,
+            'JOIN':          self.cmd_join,
+            'LEAVE':         self.cmd_leave,
+            'PARTY':         self.cmd_party,
+            'QUERY':         self.query,
+        }
 
     def _cmd(self, path):
         return _jishi_cmd(self.jishi_url, f"/{self._zp}/{path}")
@@ -456,17 +466,6 @@ class Controller(udi_interface.Node):
         {'driver': 'ST', 'value': 0, 'uom': 2},
     ]
 
-    commands = {
-        'DISCOVER':        'discover',
-        'PAUSE_ALL':       'cmd_pause_all',
-        'RESUME_ALL':      'cmd_resume_all',
-        'UNGROUP_ALL':     'cmd_ungroup_all',
-        'PARTY':           'cmd_party_all',
-        'SAY_ALL':         'cmd_say_all',
-        'REFRESH_CONTENT': 'cmd_refresh_content',
-        'QUERY':           'query',
-    }
-
     def __init__(self, polyglot, primary, address, name):
         super().__init__(polyglot, primary, address, name)
         self.poly = polyglot
@@ -479,6 +478,16 @@ class Controller(udi_interface.Node):
         self._poll_lock = threading.Lock()
         self._initialized = False
         self._node_added = threading.Event()
+        self.commands = {
+            'DISCOVER':        self.discover,
+            'PAUSE_ALL':       self.cmd_pause_all,
+            'RESUME_ALL':      self.cmd_resume_all,
+            'UNGROUP_ALL':     self.cmd_ungroup_all,
+            'PARTY':           self.cmd_party_all,
+            'SAY_ALL':         self.cmd_say_all,
+            'REFRESH_CONTENT': self.cmd_refresh_content,
+            'QUERY':           self.query,
+        }
 
         polyglot.subscribe(polyglot.START,        self.start)
         polyglot.subscribe(polyglot.CUSTOMPARAMS, self.param_handler)
