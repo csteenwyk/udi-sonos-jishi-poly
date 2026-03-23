@@ -27,7 +27,7 @@
         {
             "title": "Sonos Jishi NodeServer",
             "author": "csteenwyk",
-            "version": "3.1.0",
+            "version": "0.0.1",
             "date": "March 2026",
             "source": "https://github.com/csteenwyk/udi-sonos-jishi-poly",
             "license": "https://github.com/csteenwyk/udi-sonos-jishi-poly/blob/main/LICENSE"
