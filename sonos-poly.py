@@ -14,6 +14,7 @@ TTS phrases are user-configured via Custom Parameters (tts_1..tts_10).
 import os
 import re
 import threading
+import time
 import sys
 
 import requests
@@ -536,8 +537,11 @@ class Controller(udi_interface.Node):
                 new_zone_names.append(name)
         self.zone_names = new_zone_names
 
-        # Fetch content lists and update profile
-        self._refresh_content(force=True)
+        # Fetch content lists and update profile; if profile was pushed,
+        # wait for ISY to finish installing it before adding nodes.
+        if self._refresh_content(force=True):
+            LOGGER.info('Waiting for ISY to install profile...')
+            time.sleep(3)
 
         # Add/update speaker nodes
         for zone in zones:
@@ -577,6 +581,8 @@ class Controller(udi_interface.Node):
                 self.favorites, self.playlists,
                 self.tts_phrases, self.zone_names)
             self.poly.updateProfile()
+            return True
+        return False
 
     def poll(self, flag):
         if not self._jishi_url:
