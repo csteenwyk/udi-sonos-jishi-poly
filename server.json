@@ -4,7 +4,7 @@
     "type": "python3",
     "executable": "sonos-poly.py",
     "install": "install.sh",
-    "description": "Sonos control via node-sonos-http-api (Jishi). Works across VLANs, handles stereo pairs natively. No UPnP subscriptions required.",
+    "description": "Sonos control via Jishi HTTP API. Works across VLANs. Favorites and playlists shown by name in ISY UI.",
     "shortPoll": "10",
     "longPoll": "120",
     "testMode": false,
@@ -12,23 +12,17 @@
     "profile_version": "3",
     "customParams": {
         "jishi_url": "http://localhost:5005",
-        "favorite_1": "",
-        "favorite_2": "",
-        "favorite_3": "",
-        "favorite_4": "",
-        "favorite_5": "",
-        "playlist_1": "",
-        "playlist_2": "",
-        "playlist_3": "",
         "tts_1": "",
         "tts_2": "",
-        "tts_3": ""
+        "tts_3": "",
+        "tts_4": "",
+        "tts_5": ""
     },
     "credits": [
         {
             "title": "Sonos Jishi NodeServer",
             "author": "csteenwyk",
-            "version": "3.0.0",
+            "version": "3.1.0",
             "date": "March 2026",
             "source": "https://github.com/csteenwyk/udi-sonos-jishi-poly",
             "license": "https://github.com/csteenwyk/udi-sonos-jishi-poly/blob/main/LICENSE"

@@ -1,4 +1,4 @@
-# Node Server Name
+# Node Server Names
 ND-sonos-controller-NAME = Sonos Controller
 ND-sonos-speaker-NAME = Sonos Speaker
 
@@ -46,13 +46,26 @@ CMD-sonos-speaker-PLAY_PLAYLIST-NAME = Play Playlist
 CMD-sonos-speaker-SAY-NAME = Say (TTS)
 CMD-sonos-speaker-SLEEP-NAME = Sleep Timer
 
-# Playback State values (UOM 25 index)
+# Playback State index values
 CUST_PB-0 = Stopped
 CUST_PB-1 = Playing
 CUST_PB-2 = Paused
 CUST_PB-3 = Transitioning
 
-# Repeat mode values (UOM 25 index)
+# Repeat mode index values
 CUST_REPEAT-0 = None
 CUST_REPEAT-1 = One
 CUST_REPEAT-2 = All
+
+# Sleep timer index values
+CUST_SLEEP-0 = Off
+CUST_SLEEP-15 = 15 min
+CUST_SLEEP-30 = 30 min
+CUST_SLEEP-45 = 45 min
+CUST_SLEEP-60 = 60 min
+CUST_SLEEP-90 = 90 min
+
+# Dynamic — populated at runtime by sonos-poly.py
+CUST_FAV-0 = (loading...)
+CUST_PL-0 = (loading...)
+CUST_TTS-0 = (loading...)

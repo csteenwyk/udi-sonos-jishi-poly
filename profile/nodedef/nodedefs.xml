@@ -19,25 +19,25 @@
   <!-- Speaker Node -->
   <nodeDef id="sonos-speaker" nodeType="139" nls="ND-sonos-speaker">
     <drivers>
-      <driver id="ST"   editor="E_PLAYBACK"/>  <!-- Playback state -->
-      <driver id="SVOL" editor="E_VOL"/>        <!-- Volume -->
-      <driver id="GV1"  editor="E_EQ"/>         <!-- Bass -->
-      <driver id="GV2"  editor="E_EQ"/>         <!-- Treble -->
-      <driver id="GV3"  editor="E_BOOL"/>       <!-- Mute -->
-      <driver id="GV4"  editor="E_BOOL"/>       <!-- Shuffle -->
-      <driver id="GV5"  editor="E_REPEAT"/>     <!-- Repeat -->
-      <driver id="GV6"  editor="E_BOOL"/>       <!-- Crossfade -->
-      <driver id="GV7"  editor="E_BOOL"/>       <!-- Loudness -->
-      <driver id="GV8"  editor="E_TEXT"/>       <!-- Track title -->
-      <driver id="GV9"  editor="E_TEXT"/>       <!-- Artist -->
-      <driver id="GV10" editor="E_TEXT"/>       <!-- Album/Station -->
+      <driver id="ST"   editor="E_PLAYBACK"/> <!-- Playback state -->
+      <driver id="SVOL" editor="E_VOL"/>      <!-- Volume -->
+      <driver id="GV1"  editor="E_EQ"/>       <!-- Bass -->
+      <driver id="GV2"  editor="E_EQ"/>       <!-- Treble -->
+      <driver id="GV3"  editor="E_BOOL"/>     <!-- Mute -->
+      <driver id="GV4"  editor="E_BOOL"/>     <!-- Shuffle -->
+      <driver id="GV5"  editor="E_REPEAT"/>   <!-- Repeat -->
+      <driver id="GV6"  editor="E_BOOL"/>     <!-- Crossfade -->
+      <driver id="GV7"  editor="E_BOOL"/>     <!-- Loudness -->
+      <driver id="GV8"  editor="E_BOOL"/>     <!-- Track title (placeholder) -->
+      <driver id="GV9"  editor="E_BOOL"/>     <!-- Artist (placeholder) -->
+      <driver id="GV10" editor="E_BOOL"/>     <!-- Album/Station (placeholder) -->
     </drivers>
     <commands>
       <sends/>
       <accepts>
         <command id="QUERY"/>
-        <command id="DON"/>            <!-- Play -->
-        <command id="DOF"/>            <!-- Pause -->
+        <command id="DON"/>
+        <command id="DOF"/>
         <command id="STOP"/>
         <command id="NEXT"/>
         <command id="PREV"/>
@@ -61,13 +61,13 @@
         </command>
         <command id="CROSSFADE"/>
         <command id="PLAY_FAVORITE">
-          <p id="0" editor="E_SLOT"/>
+          <p id="0" editor="E_FAV"/>
         </command>
         <command id="PLAY_PLAYLIST">
-          <p id="0" editor="E_SLOT"/>
+          <p id="0" editor="E_PLAYLIST"/>
         </command>
         <command id="SAY">
-          <p id="0" editor="E_SLOT"/>
+          <p id="0" editor="E_TTS"/>
         </command>
         <command id="SLEEP">
           <p id="0" editor="E_SLEEP"/>

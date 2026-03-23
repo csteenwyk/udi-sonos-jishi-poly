@@ -9,38 +9,41 @@
     <range uom="56" subset="-10,10" step="1" prec="0"/>
   </editor>
 
-  <!-- Playback State: 0=Stopped, 1=Playing, 2=Paused, 3=Transitioning -->
+  <!-- Playback State -->
   <editor id="E_PLAYBACK">
     <range uom="25" subset="0,1,2,3" nls="CUST_PB"/>
   </editor>
 
-  <!-- Boolean: 0=False, 1=True -->
+  <!-- Boolean -->
   <editor id="E_BOOL">
     <range uom="2" subset="0,1"/>
   </editor>
 
-  <!-- Repeat: 0=None, 1=One, 2=All -->
+  <!-- Repeat -->
   <editor id="E_REPEAT">
     <range uom="25" subset="0,1,2" nls="CUST_REPEAT"/>
   </editor>
 
-  <!-- Slot 1-10 for favorites/playlists/TTS -->
-  <editor id="E_SLOT">
-    <range uom="25" subset="1,2,3,4,5,6,7,8,9,10"/>
-  </editor>
-
-  <!-- Sleep timer in minutes: 0=off, 15,30,45,60,90 -->
+  <!-- Sleep timer in minutes -->
   <editor id="E_SLEEP">
-    <range uom="25" subset="0,15,30,45,60,90"/>
-  </editor>
-
-  <!-- Text/string (read-only display) -->
-  <editor id="E_TEXT">
-    <range uom="25" subset="0"/>
+    <range uom="25" subset="0,15,30,45,60,90" nls="CUST_SLEEP"/>
   </editor>
 
   <!-- Controller status -->
   <editor id="E_STATUS">
     <range uom="2" subset="0,1"/>
+  </editor>
+
+  <!-- Dynamic — populated at runtime by sonos-poly.py -->
+  <editor id="E_FAV">
+    <range uom="25" subset="0" nls="CUST_FAV"/>
+  </editor>
+
+  <editor id="E_PLAYLIST">
+    <range uom="25" subset="0" nls="CUST_PL"/>
+  </editor>
+
+  <editor id="E_TTS">
+    <range uom="25" subset="0" nls="CUST_TTS"/>
   </editor>
 </editors>
