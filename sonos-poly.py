@@ -478,14 +478,29 @@ class Controller(udi_interface.Node):
         self.zone_names = []      # ordered list of zone room names for JOIN
         self._poll_lock = threading.Lock()
         self._initialized = False
+        self._node_added = threading.Event()
 
         polyglot.subscribe(polyglot.START,        self.start)
         polyglot.subscribe(polyglot.CUSTOMPARAMS, self.param_handler)
         polyglot.subscribe(polyglot.POLL,         self.poll)
         polyglot.subscribe(polyglot.STOP,         self.stop)
+        polyglot.subscribe(polyglot.ADDNODEDONE,  self._on_node_added)
 
         polyglot.ready()
-        polyglot.addNode(self, conn_status='ST')  # may fail on first install; discover() retries
+        polyglot.updateProfile()
+        polyglot.addNode(self, conn_status='ST')
+
+    def _on_node_added(self, data):
+        """Called by udi_interface when a node is fully added to ISY."""
+        LOGGER.debug(f"ADDNODEDONE: {data}")
+        self._node_added.set()
+
+    def _add_node_wait(self, node, timeout=15):
+        """Add a node and wait for ISY to confirm it before continuing."""
+        self._node_added.clear()
+        self.poly.addNode(node)
+        if not self._node_added.wait(timeout=timeout):
+            LOGGER.warning(f"Timeout waiting for node {getattr(node, 'address', '?')} to be added to ISY")
 
     def start(self):
         LOGGER.info('Sonos Jishi NodeServer starting')
@@ -537,12 +552,14 @@ class Controller(udi_interface.Node):
                 new_zone_names.append(name)
         self.zone_names = new_zone_names
 
-        # Add nodes FIRST using the pre-installed static profile.
-        # updateProfile() is called afterward so it doesn't interfere
-        # with ISY accepting new nodes.
-        self.poly.addNode(self, conn_status='ST')
-        time.sleep(1)
+        # Refresh content and push updated profile to ISY before adding nodes,
+        # matching the tutorial pattern: updateProfile → addNode → wait ADDNODEDONE.
+        self._refresh_content(force=True)
 
+        # Re-add controller (no-op if already in ISY; needed on first install).
+        self._add_node_wait(self)
+
+        # Add speaker nodes one at a time, waiting for each to land in ISY.
         for zone in zones:
             zone_name = (zone.get('coordinator', {}).get('roomName')
                          or zone.get('roomName', ''))
@@ -555,19 +572,14 @@ class Controller(udi_interface.Node):
                 node = SpeakerNode(
                     self.poly, self.address, address, zone_name,
                     zone_name, self._jishi_url, self)
-                self.poly.addNode(node)
+                self._add_node_wait(node)
                 self._speakers[address] = node
-                time.sleep(0.5)
 
             coordinator = zone.get('coordinator', zone)
             self._speakers[address].update_from_state(coordinator)
             self._speakers[address].update_group_state(zone.get('groupState', {}))
 
         LOGGER.info(f"Discovery complete — {len(self._speakers)} zones")
-
-        # Now refresh content and push updated NLS/editors to ISY.
-        # Done after addNode so the profile update doesn't block node creation.
-        self._refresh_content(force=True)
 
     def _refresh_content(self, force=False):
         """Fetch favorites/playlists from Jishi; update ISY profile if changed."""
