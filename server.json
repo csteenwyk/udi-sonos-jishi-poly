@@ -1,0 +1,14 @@
+{
+    "name": "Sonos Jishi",
+    "profile_version": "1",
+    "executable": "sonos-poly.py",
+    "credits": [
+        {
+            "title": "Sonos Jishi NodeServer",
+            "author": "csteenwyk",
+            "version": "3.0.0",
+            "description": "Sonos control via node-sonos-http-api (Jishi). Works across VLANs. No UPnP subscriptions required.",
+            "link": "https://github.com/csteenwyk/udi-sonos-jishi-poly"
+        }
+    ]
+}

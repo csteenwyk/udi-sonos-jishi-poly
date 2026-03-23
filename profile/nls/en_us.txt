@@ -1,0 +1,58 @@
+# Node Server Name
+ND-sonos-controller-NAME = Sonos Controller
+ND-sonos-speaker-NAME = Sonos Speaker
+
+# Controller Drivers
+ST-sonos-controller-ST-NAME = Status
+
+# Speaker Drivers
+ST-sonos-speaker-ST-NAME = Playback State
+ST-sonos-speaker-SVOL-NAME = Volume
+ST-sonos-speaker-GV1-NAME = Bass
+ST-sonos-speaker-GV2-NAME = Treble
+ST-sonos-speaker-GV3-NAME = Mute
+ST-sonos-speaker-GV4-NAME = Shuffle
+ST-sonos-speaker-GV5-NAME = Repeat
+ST-sonos-speaker-GV6-NAME = Crossfade
+ST-sonos-speaker-GV7-NAME = Loudness
+ST-sonos-speaker-GV8-NAME = Track Title
+ST-sonos-speaker-GV9-NAME = Artist
+ST-sonos-speaker-GV10-NAME = Album / Station
+
+# Controller Commands
+CMD-sonos-controller-DISCOVER-NAME = Re-Discover
+CMD-sonos-controller-PAUSE_ALL-NAME = Pause All
+CMD-sonos-controller-RESUME_ALL-NAME = Resume All
+
+# Speaker Commands
+CMD-sonos-speaker-DON-NAME = Play
+CMD-sonos-speaker-DOF-NAME = Pause
+CMD-sonos-speaker-STOP-NAME = Stop
+CMD-sonos-speaker-NEXT-NAME = Next Track
+CMD-sonos-speaker-PREV-NAME = Previous Track
+CMD-sonos-speaker-SET_VOL-NAME = Set Volume
+CMD-sonos-speaker-VOL_UP-NAME = Volume Up
+CMD-sonos-speaker-VOL_DOWN-NAME = Volume Down
+CMD-sonos-speaker-SET_BASS-NAME = Set Bass
+CMD-sonos-speaker-SET_TREBLE-NAME = Set Treble
+CMD-sonos-speaker-MUTE-NAME = Mute
+CMD-sonos-speaker-UNMUTE-NAME = Unmute
+CMD-sonos-speaker-SHUFFLE_ON-NAME = Shuffle On
+CMD-sonos-speaker-SHUFFLE_OFF-NAME = Shuffle Off
+CMD-sonos-speaker-REPEAT-NAME = Set Repeat
+CMD-sonos-speaker-CROSSFADE-NAME = Toggle Crossfade
+CMD-sonos-speaker-PLAY_FAVORITE-NAME = Play Favorite
+CMD-sonos-speaker-PLAY_PLAYLIST-NAME = Play Playlist
+CMD-sonos-speaker-SAY-NAME = Say (TTS)
+CMD-sonos-speaker-SLEEP-NAME = Sleep Timer
+
+# Playback State values (UOM 25 index)
+CUST_PB-0 = Stopped
+CUST_PB-1 = Playing
+CUST_PB-2 = Paused
+CUST_PB-3 = Transitioning
+
+# Repeat mode values (UOM 25 index)
+CUST_REPEAT-0 = None
+CUST_REPEAT-1 = One
+CUST_REPEAT-2 = All
