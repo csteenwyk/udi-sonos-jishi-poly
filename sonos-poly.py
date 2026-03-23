@@ -485,7 +485,7 @@ class Controller(udi_interface.Node):
         polyglot.subscribe(polyglot.STOP,         self.stop)
 
         polyglot.ready()
-        polyglot.addNode(self, conn_status='ST')
+        polyglot.addNode(self, conn_status='ST')  # may fail on first install; discover() retries
 
     def start(self):
         LOGGER.info('Sonos Jishi NodeServer starting')
@@ -542,6 +542,11 @@ class Controller(udi_interface.Node):
         if self._refresh_content(force=True):
             LOGGER.info('Waiting for ISY to install profile...')
             time.sleep(3)
+
+        # Re-add controller after profile is confirmed installed.
+        # The __init__ attempt fails on first install (profile not in ISY yet);
+        # this call succeeds and is a no-op on subsequent discovers.
+        self.poly.addNode(self, conn_status='ST')
 
         # Add/update speaker nodes
         for zone in zones:
