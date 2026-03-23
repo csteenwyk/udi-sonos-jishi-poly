@@ -63,8 +63,7 @@ ST-sonos_speaker-GV11-NAME = Speech Enhancement
 ST-sonos_speaker-GV12-NAME = Members
 
 # Speaker Commands
-CMD-sonos_speaker-DON-NAME = Play
-CMD-sonos_speaker-DOF-NAME = Pause
+CMD-sonos_speaker-PLAY_PAUSE-NAME = Play / Pause
 CMD-sonos_speaker-NEXT-NAME = Next Track
 CMD-sonos_speaker-PREV-NAME = Previous Track
 CMD-sonos_speaker-SET_VOL-NAME = Set Volume
@@ -317,10 +316,9 @@ class SpeakerNode(udi_interface.Node):
             self.reportDrivers()
 
     # --- Transport ---
-    def cmd_play(self, command):  self._cmd('play')
-    def cmd_pause(self, command): self._cmd('pause')
-    def cmd_next(self, command):  self._cmd('next')
-    def cmd_prev(self, command):  self._cmd('previous')
+    def cmd_playpause(self, command): self._cmd('playpause')
+    def cmd_next(self, command):      self._cmd('next')
+    def cmd_prev(self, command):      self._cmd('previous')
 
     # --- Volume ---
     def cmd_set_vol(self, command):
@@ -403,8 +401,7 @@ class SpeakerNode(udi_interface.Node):
 
     # udi_interface calls fun(self, command) with unbound references
     commands = {
-        'DON':           cmd_play,
-        'DOF':           cmd_pause,
+        'PLAY_PAUSE':    cmd_playpause,
         'NEXT':          cmd_next,
         'PREV':          cmd_prev,
         'SET_VOL':       cmd_set_vol,
