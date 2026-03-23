@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# MIT License — Copyright (c) 2026 csteenwyk
+# https://github.com/csteenwyk/udi-sonos-jishi-poly/blob/main/LICENSE
 """
 Sonos Polyglot v3 NodeServer - Jishi backend
 Polls the node-sonos-http-api (Jishi) server for all zone state.
