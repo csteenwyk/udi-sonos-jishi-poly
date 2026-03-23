@@ -487,7 +487,6 @@ class Controller(udi_interface.Node):
         polyglot.subscribe(polyglot.ADDNODEDONE,  self._on_node_added)
 
         polyglot.ready()
-        polyglot.addNode(self, conn_status='ST')
 
     def _on_node_added(self, data):
         """Called by udi_interface when a node is fully added to ISY."""
