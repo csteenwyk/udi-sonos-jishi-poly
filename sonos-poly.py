@@ -541,12 +541,13 @@ class Controller(udi_interface.Node):
         # wait for ISY to finish installing it before adding nodes.
         if self._refresh_content(force=True):
             LOGGER.info('Waiting for ISY to install profile...')
-            time.sleep(3)
+            time.sleep(5)
 
         # Re-add controller after profile is confirmed installed.
         # The __init__ attempt fails on first install (profile not in ISY yet);
         # this call succeeds and is a no-op on subsequent discovers.
         self.poly.addNode(self, conn_status='ST')
+        time.sleep(1)
 
         # Add/update speaker nodes
         for zone in zones:
@@ -563,6 +564,7 @@ class Controller(udi_interface.Node):
                     zone_name, self._jishi_url, self)
                 self.poly.addNode(node)
                 self._speakers[address] = node
+                time.sleep(0.5)
 
             coordinator = zone.get('coordinator', zone)
             self._speakers[address].update_from_state(coordinator)
