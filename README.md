@@ -43,7 +43,7 @@ Set these in the NodeServer's **Custom Parameters** in the PG3x UI:
 
 | Key | Example | Description |
 |-----|---------|-------------|
-| `jishi_url` | `http://zeus:5005` | URL of your Jishi server **(required)** |
+| `jishi_url` | `http://192.168.1.100:5005` | URL of your Jishi server **(required)** |
 | `tts_1` … `tts_10` | `Dinner is ready` | TTS phrases for the SAY / SAY ALL commands |
 
 Favorites and playlists are **automatically fetched from Jishi** — no manual configuration needed. They appear by name in the ISY UI and refresh on every long poll (default: every 2 minutes).
@@ -134,10 +134,10 @@ The **Refresh Content** button on the controller node triggers an immediate cont
 Because playback state is a proper driver (ST), you can trigger ISY programs directly:
 
 ```
-If 'Family Room' ST is Playing
+If 'Living Room' ST is Playing
 Then ...
 
-If 'David's Room' ST is not Playing
+If 'Office' ST is not Playing
 Then ...
 ```
 
