@@ -9,7 +9,7 @@
     "longPoll": "120",
     "testMode": false,
     "logLevel": "INFO",
-    "profile_version": "1",
+    "profile_version": "3",
     "customParams": {
         "jishi_url": "http://localhost:5005",
         "favorite_1": "",
