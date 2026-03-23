@@ -1,7 +1,7 @@
 <nodeDefs>
 
   <!-- Controller Node -->
-  <nodeDef id="sonos-controller" nls="sonos-controller">
+  <nodeDef id="sonos-controller" nodeType="139" nls="sonos-controller">
     <sts>
       <st id="ST" editor="E_STATUS"/>
     </sts>
@@ -23,7 +23,7 @@
   </nodeDef>
 
   <!-- Speaker Node -->
-  <nodeDef id="sonos-speaker" nls="sonos-speaker">
+  <nodeDef id="sonos-speaker" nodeType="139" nls="sonos-speaker">
     <sts>
       <st id="ST"   editor="E_PLAYBACK"/> <!-- Playback state -->
       <st id="SVOL" editor="E_VOL"/>      <!-- Player volume -->

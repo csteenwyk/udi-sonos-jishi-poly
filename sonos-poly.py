@@ -487,7 +487,6 @@ class Controller(udi_interface.Node):
         polyglot.subscribe(polyglot.ADDNODEDONE,  self._on_node_added)
 
         polyglot.ready()
-        polyglot.updateProfile()
         polyglot.addNode(self, conn_status='ST')
 
     def _on_node_added(self, data):
@@ -679,7 +678,7 @@ class Controller(udi_interface.Node):
 if __name__ == '__main__':
     try:
         poly = udi_interface.Interface([])
-        poly.start('3.0.0')
+        poly.start()
         Controller(poly, 'controller', 'controller', 'Sonos')
         poly.runForever()
     except (KeyboardInterrupt, SystemExit):
