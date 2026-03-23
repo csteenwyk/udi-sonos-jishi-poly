@@ -293,35 +293,6 @@ class SpeakerNode(udi_interface.Node):
         self.jishi_url = jishi_url
         self._ctrl = controller
         self._zp = _enc(zone_name)
-        self.commands = {
-            'DON':           self.cmd_play,
-            'DOF':           self.cmd_pause,
-            'PLAY_PAUSE':    self.cmd_playpause,
-            'STOP':          self.cmd_stop,
-            'NEXT':          self.cmd_next,
-            'PREV':          self.cmd_prev,
-            'SET_VOL':       self.cmd_set_vol,
-            'VOL_UP':        self.cmd_vol_up,
-            'VOL_DOWN':      self.cmd_vol_down,
-            'SET_GRP_VOL':   self.cmd_set_group_vol,
-            'SET_BASS':      self.cmd_set_bass,
-            'SET_TREBLE':    self.cmd_set_treble,
-            'MUTE':          self.cmd_mute,
-            'UNMUTE':        self.cmd_unmute,
-            'SHUFFLE_ON':    self.cmd_shuffle_on,
-            'SHUFFLE_OFF':   self.cmd_shuffle_off,
-            'REPEAT':        self.cmd_repeat,
-            'CROSSFADE_ON':  self.cmd_crossfade_on,
-            'CROSSFADE_OFF': self.cmd_crossfade_off,
-            'PLAY_FAVORITE': self.cmd_play_favorite,
-            'PLAY_PLAYLIST': self.cmd_play_playlist,
-            'SAY':           self.cmd_say,
-            'SLEEP':         self.cmd_sleep,
-            'JOIN':          self.cmd_join,
-            'LEAVE':         self.cmd_leave,
-            'PARTY':         self.cmd_party,
-            'QUERY':         self.query,
-        }
 
     def _cmd(self, path):
         return _jishi_cmd(self.jishi_url, f"/{self._zp}/{path}")
@@ -453,6 +424,37 @@ class SpeakerNode(udi_interface.Node):
             if name != self.zone_name:
                 _jishi_cmd(self.jishi_url, f"/{_enc(name)}/join/{self._zp}")
 
+    # udi_interface calls fun(self, command) with unbound references
+    commands = {
+        'DON':           cmd_play,
+        'DOF':           cmd_pause,
+        'PLAY_PAUSE':    cmd_playpause,
+        'STOP':          cmd_stop,
+        'NEXT':          cmd_next,
+        'PREV':          cmd_prev,
+        'SET_VOL':       cmd_set_vol,
+        'VOL_UP':        cmd_vol_up,
+        'VOL_DOWN':      cmd_vol_down,
+        'SET_GRP_VOL':   cmd_set_group_vol,
+        'SET_BASS':      cmd_set_bass,
+        'SET_TREBLE':    cmd_set_treble,
+        'MUTE':          cmd_mute,
+        'UNMUTE':        cmd_unmute,
+        'SHUFFLE_ON':    cmd_shuffle_on,
+        'SHUFFLE_OFF':   cmd_shuffle_off,
+        'REPEAT':        cmd_repeat,
+        'CROSSFADE_ON':  cmd_crossfade_on,
+        'CROSSFADE_OFF': cmd_crossfade_off,
+        'PLAY_FAVORITE': cmd_play_favorite,
+        'PLAY_PLAYLIST': cmd_play_playlist,
+        'SAY':           cmd_say,
+        'SLEEP':         cmd_sleep,
+        'JOIN':          cmd_join,
+        'LEAVE':         cmd_leave,
+        'PARTY':         cmd_party,
+        'QUERY':         query,
+    }
+
 
 # ---------------------------------------------------------------------------
 # Controller Node
@@ -478,16 +480,6 @@ class Controller(udi_interface.Node):
         self._poll_lock = threading.Lock()
         self._initialized = False
         self._node_added = threading.Event()
-        self.commands = {
-            'DISCOVER':        self.discover,
-            'PAUSE_ALL':       self.cmd_pause_all,
-            'RESUME_ALL':      self.cmd_resume_all,
-            'UNGROUP_ALL':     self.cmd_ungroup_all,
-            'PARTY':           self.cmd_party_all,
-            'SAY_ALL':         self.cmd_say_all,
-            'REFRESH_CONTENT': self.cmd_refresh_content,
-            'QUERY':           self.query,
-        }
 
         polyglot.subscribe(polyglot.START,        self.start)
         polyglot.subscribe(polyglot.CUSTOMPARAMS, self.param_handler)
@@ -677,6 +669,18 @@ class Controller(udi_interface.Node):
         self.reportDrivers()
         for node in self._speakers.values():
             node.query()
+
+    # udi_interface calls fun(self, command) with unbound references
+    commands = {
+        'DISCOVER':        discover,
+        'PAUSE_ALL':       cmd_pause_all,
+        'RESUME_ALL':      cmd_resume_all,
+        'UNGROUP_ALL':     cmd_ungroup_all,
+        'PARTY':           cmd_party_all,
+        'SAY_ALL':         cmd_say_all,
+        'REFRESH_CONTENT': cmd_refresh_content,
+        'QUERY':           query,
+    }
 
 
 # ---------------------------------------------------------------------------
