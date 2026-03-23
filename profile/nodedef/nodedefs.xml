@@ -1,97 +1,97 @@
 <nodeDefs>
 
   <!-- Controller Node -->
-  <nodeDef id="sonos-controller" nodeType="139" nls="ND-sonos-controller">
-    <drivers>
-      <driver id="ST" editor="E_STATUS"/>
-    </drivers>
-    <commands>
+  <nodeDef id="sonos-controller" nls="sonos-controller">
+    <sts>
+      <st id="ST" editor="E_STATUS"/>
+    </sts>
+    <cmds>
       <sends/>
       <accepts>
-        <command id="QUERY"/>
-        <command id="DISCOVER"/>
-        <command id="PAUSE_ALL"/>
-        <command id="RESUME_ALL"/>
-        <command id="UNGROUP_ALL"/>
-        <command id="PARTY"/>
-        <command id="SAY_ALL">
+        <cmd id="QUERY"/>
+        <cmd id="DISCOVER"/>
+        <cmd id="PAUSE_ALL"/>
+        <cmd id="RESUME_ALL"/>
+        <cmd id="UNGROUP_ALL"/>
+        <cmd id="PARTY"/>
+        <cmd id="REFRESH_CONTENT"/>
+        <cmd id="SAY_ALL">
           <p id="0" editor="E_TTS"/>
-        </command>
-        <command id="REFRESH_CONTENT"/>
+        </cmd>
       </accepts>
-    </commands>
+    </cmds>
   </nodeDef>
 
   <!-- Speaker Node -->
-  <nodeDef id="sonos-speaker" nodeType="139" nls="ND-sonos-speaker">
-    <drivers>
-      <driver id="ST"   editor="E_PLAYBACK"/> <!-- Playback state -->
-      <driver id="SVOL" editor="E_VOL"/>      <!-- Player volume -->
-      <driver id="GV1"  editor="E_VOL"/>      <!-- Group volume -->
-      <driver id="GV2"  editor="E_EQ"/>       <!-- Bass -->
-      <driver id="GV3"  editor="E_EQ"/>       <!-- Treble -->
-      <driver id="GV4"  editor="E_BOOL"/>     <!-- Mute -->
-      <driver id="GV5"  editor="E_BOOL"/>     <!-- Group mute -->
-      <driver id="GV6"  editor="E_BOOL"/>     <!-- Shuffle -->
-      <driver id="GV7"  editor="E_REPEAT"/>   <!-- Repeat -->
-      <driver id="GV8"  editor="E_BOOL"/>     <!-- Crossfade -->
-      <driver id="GV9"  editor="E_BOOL"/>     <!-- Loudness -->
-      <driver id="GV10" editor="E_BOOL"/>     <!-- Nightmode -->
-      <driver id="GV11" editor="E_BOOL"/>     <!-- Speech enhancement -->
-      <driver id="GV12" editor="E_EQ"/>       <!-- Members in group -->
-    </drivers>
-    <commands>
+  <nodeDef id="sonos-speaker" nls="sonos-speaker">
+    <sts>
+      <st id="ST"   editor="E_PLAYBACK"/> <!-- Playback state -->
+      <st id="SVOL" editor="E_VOL"/>      <!-- Player volume -->
+      <st id="GV1"  editor="E_VOL"/>      <!-- Group volume -->
+      <st id="GV2"  editor="E_EQ"/>       <!-- Bass -->
+      <st id="GV3"  editor="E_EQ"/>       <!-- Treble -->
+      <st id="GV4"  editor="E_BOOL"/>     <!-- Mute -->
+      <st id="GV5"  editor="E_BOOL"/>     <!-- Group mute -->
+      <st id="GV6"  editor="E_BOOL"/>     <!-- Shuffle -->
+      <st id="GV7"  editor="E_REPEAT"/>   <!-- Repeat -->
+      <st id="GV8"  editor="E_BOOL"/>     <!-- Crossfade -->
+      <st id="GV9"  editor="E_BOOL"/>     <!-- Loudness -->
+      <st id="GV10" editor="E_BOOL"/>     <!-- Nightmode -->
+      <st id="GV11" editor="E_BOOL"/>     <!-- Speech enhancement -->
+      <st id="GV12" editor="E_EQ"/>       <!-- Members in group -->
+    </sts>
+    <cmds>
       <sends/>
       <accepts>
-        <command id="QUERY"/>
-        <command id="DON"/>
-        <command id="DOF"/>
-        <command id="PLAY_PAUSE"/>
-        <command id="STOP"/>
-        <command id="NEXT"/>
-        <command id="PREV"/>
-        <command id="SET_VOL">
+        <cmd id="QUERY"/>
+        <cmd id="DON"/>
+        <cmd id="DOF"/>
+        <cmd id="PLAY_PAUSE"/>
+        <cmd id="STOP"/>
+        <cmd id="NEXT"/>
+        <cmd id="PREV"/>
+        <cmd id="SET_VOL">
           <p id="0" editor="E_VOL" init="SVOL"/>
-        </command>
-        <command id="VOL_UP"/>
-        <command id="VOL_DOWN"/>
-        <command id="SET_GRP_VOL">
+        </cmd>
+        <cmd id="VOL_UP"/>
+        <cmd id="VOL_DOWN"/>
+        <cmd id="SET_GRP_VOL">
           <p id="0" editor="E_VOL" init="GV1"/>
-        </command>
-        <command id="SET_BASS">
+        </cmd>
+        <cmd id="SET_BASS">
           <p id="0" editor="E_EQ" init="GV2"/>
-        </command>
-        <command id="SET_TREBLE">
+        </cmd>
+        <cmd id="SET_TREBLE">
           <p id="0" editor="E_EQ" init="GV3"/>
-        </command>
-        <command id="MUTE"/>
-        <command id="UNMUTE"/>
-        <command id="SHUFFLE_ON"/>
-        <command id="SHUFFLE_OFF"/>
-        <command id="REPEAT">
+        </cmd>
+        <cmd id="MUTE"/>
+        <cmd id="UNMUTE"/>
+        <cmd id="SHUFFLE_ON"/>
+        <cmd id="SHUFFLE_OFF"/>
+        <cmd id="REPEAT">
           <p id="0" editor="E_REPEAT" init="GV7"/>
-        </command>
-        <command id="CROSSFADE_ON"/>
-        <command id="CROSSFADE_OFF"/>
-        <command id="PLAY_FAVORITE">
+        </cmd>
+        <cmd id="CROSSFADE_ON"/>
+        <cmd id="CROSSFADE_OFF"/>
+        <cmd id="PLAY_FAVORITE">
           <p id="0" editor="E_FAV"/>
-        </command>
-        <command id="PLAY_PLAYLIST">
+        </cmd>
+        <cmd id="PLAY_PLAYLIST">
           <p id="0" editor="E_PLAYLIST"/>
-        </command>
-        <command id="SAY">
+        </cmd>
+        <cmd id="SAY">
           <p id="0" editor="E_TTS"/>
-        </command>
-        <command id="SLEEP">
+        </cmd>
+        <cmd id="SLEEP">
           <p id="0" editor="E_SLEEP"/>
-        </command>
-        <command id="JOIN">
+        </cmd>
+        <cmd id="JOIN">
           <p id="0" editor="E_ZONES"/>
-        </command>
-        <command id="LEAVE"/>
-        <command id="PARTY"/>
+        </cmd>
+        <cmd id="LEAVE"/>
+        <cmd id="PARTY"/>
       </accepts>
-    </commands>
+    </cmds>
   </nodeDef>
 
 </nodeDefs>
