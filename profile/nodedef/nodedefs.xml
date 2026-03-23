@@ -12,6 +12,11 @@
         <command id="DISCOVER"/>
         <command id="PAUSE_ALL"/>
         <command id="RESUME_ALL"/>
+        <command id="UNGROUP_ALL"/>
+        <command id="PARTY"/>
+        <command id="SAY_ALL">
+          <p id="0" editor="E_TTS"/>
+        </command>
       </accepts>
     </commands>
   </nodeDef>
@@ -20,17 +25,19 @@
   <nodeDef id="sonos-speaker" nodeType="139" nls="ND-sonos-speaker">
     <drivers>
       <driver id="ST"   editor="E_PLAYBACK"/> <!-- Playback state -->
-      <driver id="SVOL" editor="E_VOL"/>      <!-- Volume -->
-      <driver id="GV1"  editor="E_EQ"/>       <!-- Bass -->
-      <driver id="GV2"  editor="E_EQ"/>       <!-- Treble -->
-      <driver id="GV3"  editor="E_BOOL"/>     <!-- Mute -->
-      <driver id="GV4"  editor="E_BOOL"/>     <!-- Shuffle -->
-      <driver id="GV5"  editor="E_REPEAT"/>   <!-- Repeat -->
-      <driver id="GV6"  editor="E_BOOL"/>     <!-- Crossfade -->
-      <driver id="GV7"  editor="E_BOOL"/>     <!-- Loudness -->
-      <driver id="GV8"  editor="E_BOOL"/>     <!-- Track title (placeholder) -->
-      <driver id="GV9"  editor="E_BOOL"/>     <!-- Artist (placeholder) -->
-      <driver id="GV10" editor="E_BOOL"/>     <!-- Album/Station (placeholder) -->
+      <driver id="SVOL" editor="E_VOL"/>      <!-- Player volume -->
+      <driver id="GV1"  editor="E_VOL"/>      <!-- Group volume -->
+      <driver id="GV2"  editor="E_EQ"/>       <!-- Bass -->
+      <driver id="GV3"  editor="E_EQ"/>       <!-- Treble -->
+      <driver id="GV4"  editor="E_BOOL"/>     <!-- Mute -->
+      <driver id="GV5"  editor="E_BOOL"/>     <!-- Group mute -->
+      <driver id="GV6"  editor="E_BOOL"/>     <!-- Shuffle -->
+      <driver id="GV7"  editor="E_REPEAT"/>   <!-- Repeat -->
+      <driver id="GV8"  editor="E_BOOL"/>     <!-- Crossfade -->
+      <driver id="GV9"  editor="E_BOOL"/>     <!-- Loudness -->
+      <driver id="GV10" editor="E_BOOL"/>     <!-- Nightmode -->
+      <driver id="GV11" editor="E_BOOL"/>     <!-- Speech enhancement -->
+      <driver id="GV12" editor="E_EQ"/>       <!-- Members in group -->
     </drivers>
     <commands>
       <sends/>
@@ -47,17 +54,17 @@
         <command id="VOL_UP"/>
         <command id="VOL_DOWN"/>
         <command id="SET_BASS">
-          <p id="0" editor="E_EQ" init="GV1"/>
+          <p id="0" editor="E_EQ" init="GV2"/>
         </command>
         <command id="SET_TREBLE">
-          <p id="0" editor="E_EQ" init="GV2"/>
+          <p id="0" editor="E_EQ" init="GV3"/>
         </command>
         <command id="MUTE"/>
         <command id="UNMUTE"/>
         <command id="SHUFFLE_ON"/>
         <command id="SHUFFLE_OFF"/>
         <command id="REPEAT">
-          <p id="0" editor="E_REPEAT" init="GV5"/>
+          <p id="0" editor="E_REPEAT" init="GV7"/>
         </command>
         <command id="CROSSFADE"/>
         <command id="PLAY_FAVORITE">
@@ -72,6 +79,11 @@
         <command id="SLEEP">
           <p id="0" editor="E_SLEEP"/>
         </command>
+        <command id="JOIN">
+          <p id="0" editor="E_ZONES"/>
+        </command>
+        <command id="LEAVE"/>
+        <command id="PARTY"/>
       </accepts>
     </commands>
   </nodeDef>
