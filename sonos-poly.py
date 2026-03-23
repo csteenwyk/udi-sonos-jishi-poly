@@ -15,7 +15,6 @@ import os
 import re
 import threading
 import sys
-import asyncio
 
 import requests
 import udi_interface
@@ -74,10 +73,13 @@ CMD-sonos-speaker-SET_BASS-NAME = Set Bass
 CMD-sonos-speaker-SET_TREBLE-NAME = Set Treble
 CMD-sonos-speaker-MUTE-NAME = Mute
 CMD-sonos-speaker-UNMUTE-NAME = Unmute
+CMD-sonos-speaker-PLAY_PAUSE-NAME = Play / Pause Toggle
+CMD-sonos-speaker-SET_GRP_VOL-NAME = Set Group Volume
 CMD-sonos-speaker-SHUFFLE_ON-NAME = Shuffle On
 CMD-sonos-speaker-SHUFFLE_OFF-NAME = Shuffle Off
 CMD-sonos-speaker-REPEAT-NAME = Set Repeat
-CMD-sonos-speaker-CROSSFADE-NAME = Toggle Crossfade
+CMD-sonos-speaker-CROSSFADE_ON-NAME = Crossfade On
+CMD-sonos-speaker-CROSSFADE_OFF-NAME = Crossfade Off
 CMD-sonos-speaker-PLAY_FAVORITE-NAME = Play Favorite
 CMD-sonos-speaker-PLAY_PLAYLIST-NAME = Play Playlist
 CMD-sonos-speaker-SAY-NAME = Say (TTS)
@@ -275,12 +277,14 @@ class SpeakerNode(udi_interface.Node):
     commands = {
         'DON':           'cmd_play',
         'DOF':           'cmd_pause',
+        'PLAY_PAUSE':    'cmd_playpause',
         'STOP':          'cmd_stop',
         'NEXT':          'cmd_next',
         'PREV':          'cmd_prev',
         'SET_VOL':       'cmd_set_vol',
         'VOL_UP':        'cmd_vol_up',
         'VOL_DOWN':      'cmd_vol_down',
+        'SET_GRP_VOL':   'cmd_set_group_vol',
         'SET_BASS':      'cmd_set_bass',
         'SET_TREBLE':    'cmd_set_treble',
         'MUTE':          'cmd_mute',
@@ -288,7 +292,8 @@ class SpeakerNode(udi_interface.Node):
         'SHUFFLE_ON':    'cmd_shuffle_on',
         'SHUFFLE_OFF':   'cmd_shuffle_off',
         'REPEAT':        'cmd_repeat',
-        'CROSSFADE':     'cmd_crossfade',
+        'CROSSFADE_ON':  'cmd_crossfade_on',
+        'CROSSFADE_OFF': 'cmd_crossfade_off',
         'PLAY_FAVORITE': 'cmd_play_favorite',
         'PLAY_PLAYLIST': 'cmd_play_playlist',
         'SAY':           'cmd_say',
@@ -347,17 +352,20 @@ class SpeakerNode(udi_interface.Node):
             self.reportDrivers()
 
     # --- Transport ---
-    def cmd_play(self, command):   self._cmd('play')
-    def cmd_pause(self, command):  self._cmd('pause')
-    def cmd_stop(self, command):   self._cmd('stop')
-    def cmd_next(self, command):   self._cmd('next')
-    def cmd_prev(self, command):   self._cmd('previous')
+    def cmd_play(self, command):      self._cmd('play')
+    def cmd_pause(self, command):     self._cmd('pause')
+    def cmd_playpause(self, command): self._cmd('playpause')
+    def cmd_stop(self, command):      self._cmd('stop')
+    def cmd_next(self, command):      self._cmd('next')
+    def cmd_prev(self, command):      self._cmd('previous')
 
     # --- Volume ---
     def cmd_set_vol(self, command):
         self._cmd(f"volume/{int(command.get('value', 0))}")
     def cmd_vol_up(self, command):   self._cmd('volume/+2')
     def cmd_vol_down(self, command): self._cmd('volume/-2')
+    def cmd_set_group_vol(self, command):
+        self._cmd(f"groupVolume/{int(command.get('value', 0))}")
 
     # --- EQ ---
     def cmd_set_bass(self, command):
@@ -375,9 +383,12 @@ class SpeakerNode(udi_interface.Node):
 
     def cmd_repeat(self, command):
         modes = {0: 'none', 1: 'one', 2: 'all'}
-        self._cmd(f"repeat/{modes.get(int(command.get('value', 0)), 'none')}")
+        mode = modes.get(int(command.get('value', 0)), 'none')
+        # Jishi repeat only supports on/off — map none/all → off, one → on
+        self._cmd(f"repeat/{'off' if mode == 'none' else 'on'}")
 
-    def cmd_crossfade(self, command): self._cmd('crossfade/toggle')
+    def cmd_crossfade_on(self, command):  self._cmd('crossfade/on')
+    def cmd_crossfade_off(self, command): self._cmd('crossfade/off')
 
     # --- Content (0-based index matches NLS CUST_FAV-N etc.) ---
     def cmd_play_favorite(self, command):

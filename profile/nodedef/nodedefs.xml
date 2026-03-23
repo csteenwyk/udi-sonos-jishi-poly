@@ -45,6 +45,7 @@
         <command id="QUERY"/>
         <command id="DON"/>
         <command id="DOF"/>
+        <command id="PLAY_PAUSE"/>
         <command id="STOP"/>
         <command id="NEXT"/>
         <command id="PREV"/>
@@ -53,6 +54,9 @@
         </command>
         <command id="VOL_UP"/>
         <command id="VOL_DOWN"/>
+        <command id="SET_GRP_VOL">
+          <p id="0" editor="E_VOL" init="GV1"/>
+        </command>
         <command id="SET_BASS">
           <p id="0" editor="E_EQ" init="GV2"/>
         </command>
@@ -66,7 +70,8 @@
         <command id="REPEAT">
           <p id="0" editor="E_REPEAT" init="GV7"/>
         </command>
-        <command id="CROSSFADE"/>
+        <command id="CROSSFADE_ON"/>
+        <command id="CROSSFADE_OFF"/>
         <command id="PLAY_FAVORITE">
           <p id="0" editor="E_FAV"/>
         </command>
