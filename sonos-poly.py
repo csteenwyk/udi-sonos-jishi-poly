@@ -66,6 +66,7 @@ ST-sonos_speaker-GV12-NAME = Members
 CMD-sonos_speaker-PLAY_PAUSE-NAME = Play / Pause
 CMD-sonos_speaker-NEXT-NAME = Next Track
 CMD-sonos_speaker-PREV-NAME = Previous Track
+CMD-sonos_speaker-MUTE_TOGGLE-NAME = Mute Toggle
 CMD-sonos_speaker-SET_VOL-NAME = Set Volume
 CMD-sonos_speaker-SET_GRP_VOL-NAME = Set Group Volume
 CMD-sonos_speaker-SET_BASS-NAME = Set Bass
@@ -333,6 +334,11 @@ class SpeakerNode(udi_interface.Node):
         self._cmd(f"treble/{int(command.get('value', 0))}")
 
     # --- Play mode toggles (single command with bool param) ---
+    def cmd_mute_toggle(self, command):
+        # Simple no-param toggle: flip current mute state
+        current = self.getDriver('GV4')
+        self._cmd('unmute' if current else 'mute')
+
     def cmd_mute(self, command):
         self._cmd('mute' if int(command.get('value', 0)) else 'unmute')
 
@@ -403,6 +409,7 @@ class SpeakerNode(udi_interface.Node):
     commands = {
         'PLAY_PAUSE':    cmd_playpause,
         'NEXT':          cmd_next,
+        'MUTE_TOGGLE':   cmd_mute_toggle,
         'PREV':          cmd_prev,
         'SET_VOL':       cmd_set_vol,
         'SET_GRP_VOL':   cmd_set_group_vol,
@@ -470,7 +477,6 @@ class Controller(udi_interface.Node):
 
     def start(self):
         LOGGER.info('Sonos Jishi NodeServer starting')
-        self.setDriver('ST', 1)
         if not self._initialized:
             self.discover()
 
@@ -524,6 +530,7 @@ class Controller(udi_interface.Node):
 
         # Re-add controller (no-op if already in ISY; needed on first install).
         self._add_node_wait(self)
+        self.setDriver('ST', 1)  # set after node is confirmed in ISY
 
         # Add speaker nodes one at a time, waiting for each to land in ISY.
         for zone in zones:

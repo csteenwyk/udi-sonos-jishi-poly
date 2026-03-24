@@ -34,6 +34,7 @@ ST-sonos_speaker-GV12-NAME = Members
 CMD-sonos_speaker-PLAY_PAUSE-NAME = Play / Pause
 CMD-sonos_speaker-NEXT-NAME = Next Track
 CMD-sonos_speaker-PREV-NAME = Previous Track
+CMD-sonos_speaker-MUTE_TOGGLE-NAME = Mute Toggle
 CMD-sonos_speaker-SET_VOL-NAME = Set Volume
 CMD-sonos_speaker-SET_GRP_VOL-NAME = Set Group Volume
 CMD-sonos_speaker-SET_BASS-NAME = Set Bass

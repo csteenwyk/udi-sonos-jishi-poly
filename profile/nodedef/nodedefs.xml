@@ -47,6 +47,7 @@
         <cmd id="PLAY_PAUSE"/>
         <cmd id="NEXT"/>
         <cmd id="PREV"/>
+        <cmd id="MUTE_TOGGLE"/>
         <cmd id="SET_VOL">
           <p id="" editor="E_VOL" init="SVOL"/>
         </cmd>
