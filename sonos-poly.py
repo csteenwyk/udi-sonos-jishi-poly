@@ -13,9 +13,9 @@ TTS phrases are user-configured via Custom Parameters (tts_1..tts_10).
 
 import os
 import re
-import threading
-import time
 import sys
+import threading
+from urllib.parse import quote
 
 import requests
 import udi_interface
@@ -141,6 +141,9 @@ PLAYBACK_MAP = {
 
 REPEAT_MAP = {'none': 0, 'one': 1, 'all': 2}
 
+# Jishi only supports repeat on/off (= one track); 'all' maps to 'on'.
+_REPEAT_MODES = {0: 'none', 1: 'one', 2: 'all'}
+
 
 def _jishi_get(base_url, path, timeout=5):
     url = f"{base_url.rstrip('/')}/{path.lstrip('/')}"
@@ -149,29 +152,31 @@ def _jishi_get(base_url, path, timeout=5):
         r.raise_for_status()
         return r.json()
     except Exception as e:
-        LOGGER.warning(f"Jishi GET {url} failed: {e}")
+        LOGGER.warning(f"Jishi {url} failed: {e}")
         return None
 
 
 def _jishi_cmd(base_url, path, timeout=5):
-    url = f"{base_url.rstrip('/')}/{path.lstrip('/')}"
-    try:
-        r = requests.get(url, timeout=timeout)
-        r.raise_for_status()
-        return True
-    except Exception as e:
-        LOGGER.warning(f"Jishi command {url} failed: {e}")
-        return False
+    return _jishi_get(base_url, path, timeout) is not None
 
 
 def _enc(s):
-    from urllib.parse import quote
     return quote(s, safe='')
 
 
 def _zone_address(zone_name):
     addr = re.sub(r'[^a-z0-9]', '', zone_name.lower())
     return addr[:14]
+
+
+def _zone_room_name(zone):
+    """Extract room name from a Jishi zone dict (coordinator or bare zone)."""
+    return zone.get('coordinator', {}).get('roomName') or zone.get('roomName', '')
+
+
+def _cmd_val(command):
+    """Extract the integer parameter value from an ISY command dict."""
+    return int(command.get('value', 0))
 
 
 def _subset(lst):
@@ -323,40 +328,38 @@ class SpeakerNode(udi_interface.Node):
 
     # --- Volume ---
     def cmd_set_vol(self, command):
-        self._cmd(f"volume/{int(command.get('value', 0))}")
+        self._cmd(f"volume/{_cmd_val(command)}")
     def cmd_set_group_vol(self, command):
-        self._cmd(f"groupVolume/{int(command.get('value', 0))}")
+        self._cmd(f"groupVolume/{_cmd_val(command)}")
 
     # --- EQ ---
     def cmd_set_bass(self, command):
-        self._cmd(f"bass/{int(command.get('value', 0))}")
+        self._cmd(f"bass/{_cmd_val(command)}")
     def cmd_set_treble(self, command):
-        self._cmd(f"treble/{int(command.get('value', 0))}")
+        self._cmd(f"treble/{_cmd_val(command)}")
 
     # --- Play mode toggles (single command with bool param) ---
     def cmd_mute_toggle(self, command):
-        # Simple no-param toggle: flip current mute state
         current = self.getDriver('GV4')
         self._cmd('unmute' if current else 'mute')
 
     def cmd_mute(self, command):
-        self._cmd('mute' if int(command.get('value', 0)) else 'unmute')
+        self._cmd('mute' if _cmd_val(command) else 'unmute')
 
     def cmd_shuffle(self, command):
-        self._cmd('shuffle/on' if int(command.get('value', 0)) else 'shuffle/off')
+        self._cmd('shuffle/on' if _cmd_val(command) else 'shuffle/off')
 
     def cmd_repeat(self, command):
-        modes = {0: 'none', 1: 'one', 2: 'all'}
-        mode = modes.get(int(command.get('value', 0)), 'none')
-        # Jishi repeat only supports on/off — map none/all → off, one → on
+        mode = _REPEAT_MODES.get(_cmd_val(command), 'none')
+        # Jishi only supports repeat on/off; 'none' → off, 'one'/'all' → on
         self._cmd(f"repeat/{'off' if mode == 'none' else 'on'}")
 
     def cmd_crossfade(self, command):
-        self._cmd('crossfade/on' if int(command.get('value', 0)) else 'crossfade/off')
+        self._cmd('crossfade/on' if _cmd_val(command) else 'crossfade/off')
 
     # --- Content (0-based index matches NLS CUST_FAV-N etc.) ---
     def cmd_play_favorite(self, command):
-        idx = int(command.get('value', 0))
+        idx = _cmd_val(command)
         favs = self._ctrl.favorites
         if idx < len(favs):
             self._cmd(f"favorite/{_enc(favs[idx])}")
@@ -364,7 +367,7 @@ class SpeakerNode(udi_interface.Node):
             LOGGER.warning(f"{self.zone_name}: favorite index {idx} out of range")
 
     def cmd_play_playlist(self, command):
-        idx = int(command.get('value', 0))
+        idx = _cmd_val(command)
         pls = self._ctrl.playlists
         if idx < len(pls):
             self._cmd(f"playlist/{_enc(pls[idx])}")
@@ -372,7 +375,7 @@ class SpeakerNode(udi_interface.Node):
             LOGGER.warning(f"{self.zone_name}: playlist index {idx} out of range")
 
     def cmd_say(self, command):
-        idx = int(command.get('value', 0))
+        idx = _cmd_val(command)
         tts = self._ctrl.tts_phrases
         if idx < len(tts):
             # Jishi /say blocks until TTS finishes — run in background so
@@ -384,12 +387,12 @@ class SpeakerNode(udi_interface.Node):
             LOGGER.warning(f"{self.zone_name}: TTS index {idx} not configured")
 
     def cmd_sleep(self, command):
-        minutes = int(command.get('value', 0))
+        minutes = _cmd_val(command)
         self._cmd('sleep/off' if minutes == 0 else f"sleep/{minutes * 60}")
 
     # --- Grouping ---
     def cmd_join(self, command):
-        idx = int(command.get('value', 0))
+        idx = _cmd_val(command)
         zones = self._ctrl.zone_names
         if idx < len(zones):
             target = zones[idx]
@@ -511,6 +514,12 @@ class Controller(udi_interface.Node):
             LOGGER.warning('No jishi_url configured — skipping discover')
             return
 
+        # Serialize discover against polls; poll uses non-blocking acquire so it
+        # will skip cleanly while discover holds the lock.
+        with self._poll_lock:
+            self._do_discover()
+
+    def _do_discover(self):
         zones = _jishi_get(self._jishi_url, '/zones')
         if zones is None:
             self.poly.Notices['jishi'] = f"Cannot reach Jishi at {self._jishi_url}"
@@ -519,14 +528,9 @@ class Controller(udi_interface.Node):
         self.poly.Notices.clear()
         self._initialized = True
 
-        # Collect zone names for JOIN support
-        new_zone_names = []
-        for zone in zones:
-            name = (zone.get('coordinator', {}).get('roomName')
-                    or zone.get('roomName', ''))
-            if name:
-                new_zone_names.append(name)
-        self.zone_names = new_zone_names
+        # Collect zone names for JOIN support (must be done before _refresh_content
+        # so the CUST_ZONE editor is populated correctly).
+        self.zone_names = [n for z in zones if (n := _zone_room_name(z))]
 
         # Refresh content and push updated profile to ISY before adding nodes,
         # matching the tutorial pattern: updateProfile → addNode → wait ADDNODEDONE.
@@ -538,8 +542,7 @@ class Controller(udi_interface.Node):
 
         # Add speaker nodes one at a time, waiting for each to land in ISY.
         for zone in zones:
-            zone_name = (zone.get('coordinator', {}).get('roomName')
-                         or zone.get('roomName', ''))
+            zone_name = _zone_room_name(zone)
             if not zone_name:
                 continue
 
@@ -565,6 +568,8 @@ class Controller(udi_interface.Node):
         if not isinstance(new_favs, list): new_favs = []
         if not isinstance(new_pls, list):  new_pls = []
 
+        # TTS phrases are not compared here — they come from param_handler, not
+        # Jishi. When TTS changes, param_handler → discover(force=True) covers it.
         changed = force or new_favs != self.favorites or new_pls != self.playlists
         self.favorites = new_favs
         self.playlists = new_pls
@@ -597,8 +602,7 @@ class Controller(udi_interface.Node):
             LOGGER.warning('Short poll: could not reach Jishi')
             return
         for zone in zones:
-            zone_name = (zone.get('coordinator', {}).get('roomName')
-                         or zone.get('roomName', ''))
+            zone_name = _zone_room_name(zone)
             if not zone_name:
                 continue
             address = _zone_address(zone_name)
@@ -632,7 +636,7 @@ class Controller(udi_interface.Node):
 
     def cmd_say_all(self, command):
         """Say a TTS phrase on all speakers."""
-        idx = int(command.get('value', 0))
+        idx = _cmd_val(command)
         if idx < len(self.tts_phrases):
             phrase = self.tts_phrases[idx]
             threading.Thread(
