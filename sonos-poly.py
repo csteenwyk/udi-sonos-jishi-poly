@@ -553,7 +553,7 @@ class Controller(udi_interface.Node):
                 self._speakers[address] = node
 
             coordinator = zone.get('coordinator', zone)
-            self._speakers[address].update_from_state(coordinator)
+            self._speakers[address].update_from_state(coordinator.get('state', coordinator))
             self._speakers[address].update_group_state(zone.get('groupState', {}))
 
         LOGGER.info(f"Discovery complete — {len(self._speakers)} zones")
@@ -603,7 +603,8 @@ class Controller(udi_interface.Node):
                 continue
             address = _zone_address(zone_name)
             if address in self._speakers:
-                self._speakers[address].update_from_state(zone.get('coordinator', zone))
+                coordinator = zone.get('coordinator', zone)
+                self._speakers[address].update_from_state(coordinator.get('state', coordinator))
                 self._speakers[address].update_group_state(zone.get('groupState', {}))
 
     def _long_poll(self):
