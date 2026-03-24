@@ -43,11 +43,7 @@
     <cmds>
       <sends/>
       <accepts>
-        <cmd id="QUERY"/>
-        <cmd id="PLAY_PAUSE"/>
-        <cmd id="NEXT"/>
-        <cmd id="PREV"/>
-        <cmd id="MUTE_TOGGLE"/>
+        <!-- Commands with parameters (rendered as vertical rows) -->
         <cmd id="SET_VOL">
           <p id="" editor="E_VOL" init="SVOL"/>
         </cmd>
@@ -87,8 +83,14 @@
         <cmd id="JOIN">
           <p id="" editor="E_ZONES"/>
         </cmd>
+        <!-- Commands without parameters (rendered as horizontal buttons) -->
+        <cmd id="PLAY_PAUSE"/>
+        <cmd id="NEXT"/>
+        <cmd id="PREV"/>
+        <cmd id="MUTE_TOGGLE"/>
         <cmd id="LEAVE"/>
         <cmd id="PARTY"/>
+        <cmd id="QUERY"/>
       </accepts>
     </cmds>
   </nodeDef>

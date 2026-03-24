@@ -142,9 +142,6 @@ PLAYBACK_MAP = {
 
 REPEAT_MAP = {'none': 0, 'one': 1, 'all': 2}
 
-# Jishi only supports repeat on/off (= one track); 'all' maps to 'on'.
-_REPEAT_MODES = {0: 'none', 1: 'one', 2: 'all'}
-
 
 def _jishi_get(base_url, path, timeout=5):
     url = f"{base_url.rstrip('/')}/{path.lstrip('/')}"
@@ -281,30 +278,37 @@ class SpeakerNode(udi_interface.Node):
         self.jishi_url = jishi_url
         self._ctrl = controller
         self._zp = _enc(zone_name)
+        self._driver_cache: dict = {}
 
     def _cmd(self, path):
         return _jishi_cmd(self.jishi_url, f"/{self._zp}/{path}")
 
+    def _set(self, driver, value):
+        """setDriver with change detection — skips ISY update when value unchanged."""
+        if self._driver_cache.get(driver) != value:
+            self._driver_cache[driver] = value
+            self.setDriver(driver, value)
+
     def update_from_state(self, state):
         pb = state.get('playbackState', 'STOPPED')
-        self.setDriver('ST', PLAYBACK_MAP.get(pb, 0))
-        self.setDriver('SVOL', state.get('volume', 0))
+        self._set('ST', PLAYBACK_MAP.get(pb, 0))
+        self._set('SVOL', state.get('volume', 0))
 
         eq = state.get('equalizer', {})
-        self.setDriver('GV2', eq.get('bass', 0))
-        self.setDriver('GV3', eq.get('treble', 0))
-        self.setDriver('GV4', 1 if state.get('mute', False) else 0)
-        self.setDriver('GV9', 1 if eq.get('loudness', False) else 0)
-        self.setDriver('GV10', 1 if eq.get('nightMode', False) else 0)
-        self.setDriver('GV11', 1 if eq.get('speechEnhancement', False) else 0)
+        self._set('GV2', eq.get('bass', 0))
+        self._set('GV3', eq.get('treble', 0))
+        self._set('GV4', 1 if state.get('mute', False) else 0)
+        self._set('GV9', 1 if eq.get('loudness', False) else 0)
+        self._set('GV10', 1 if eq.get('nightMode', False) else 0)
+        self._set('GV11', 1 if eq.get('speechEnhancement', False) else 0)
 
         pm = state.get('playMode', {})
-        self.setDriver('GV6', 1 if pm.get('shuffle', False) else 0)
-        self.setDriver('GV7', REPEAT_MAP.get(pm.get('repeat', 'none'), 0))
-        self.setDriver('GV8', 1 if pm.get('crossfade', False) else 0)
+        self._set('GV6', 1 if pm.get('shuffle', False) else 0)
+        self._set('GV7', REPEAT_MAP.get(pm.get('repeat', 'none'), 0))
+        self._set('GV8', 1 if pm.get('crossfade', False) else 0)
 
         members = state.get('members', [])
-        self.setDriver('GV12', len(members) if members else 1)
+        self._set('GV12', len(members) if members else 1)
 
         track = state.get('currentTrack', {})
         title  = track.get('title', '') or track.get('stationName', '')
@@ -313,8 +317,8 @@ class SpeakerNode(udi_interface.Node):
 
     def update_group_state(self, group_state):
         if group_state:
-            self.setDriver('GV1', group_state.get('volume', 0))
-            self.setDriver('GV5', 1 if group_state.get('mute', False) else 0)
+            self._set('GV1', group_state.get('volume', 0))
+            self._set('GV5', 1 if group_state.get('mute', False) else 0)
 
     def query(self, command=None):
         data = _jishi_get(self.jishi_url, f"/{self._zp}/state")
@@ -351,41 +355,35 @@ class SpeakerNode(udi_interface.Node):
         self._cmd('shuffle/on' if _cmd_val(command) else 'shuffle/off')
 
     def cmd_repeat(self, command):
-        mode = _REPEAT_MODES.get(_cmd_val(command), 'none')
-        # Jishi only supports repeat on/off; 'none' → off, 'one'/'all' → on
-        self._cmd(f"repeat/{'off' if mode == 'none' else 'on'}")
+        # Jishi only supports repeat on/off; 0 (none) → off, 1/2 (one/all) → on
+        self._cmd(f"repeat/{'off' if _cmd_val(command) == 0 else 'on'}")
 
     def cmd_crossfade(self, command):
         self._cmd('crossfade/on' if _cmd_val(command) else 'crossfade/off')
 
     # --- Content (0-based index matches NLS CUST_FAV-N etc.) ---
-    def cmd_play_favorite(self, command):
+    def _cmd_indexed(self, command, items, verb, label, threaded=False):
+        """Dispatch a Jishi command by index into a list (favorites/playlists/TTS)."""
         idx = _cmd_val(command)
-        favs = self._ctrl.favorites
-        if idx < len(favs):
-            self._cmd(f"favorite/{_enc(favs[idx])}")
+        if idx < len(items):
+            path = f"{verb}/{_enc(items[idx])}"
+            if threaded:
+                threading.Thread(target=self._cmd, args=(path,), daemon=True).start()
+            else:
+                self._cmd(path)
         else:
-            LOGGER.warning(f"{self.zone_name}: favorite index {idx} out of range")
+            LOGGER.warning(f"{self.zone_name}: {label} index {idx} out of range")
+
+    def cmd_play_favorite(self, command):
+        self._cmd_indexed(command, self._ctrl.favorites, 'favorite', 'favorite')
 
     def cmd_play_playlist(self, command):
-        idx = _cmd_val(command)
-        pls = self._ctrl.playlists
-        if idx < len(pls):
-            self._cmd(f"playlist/{_enc(pls[idx])}")
-        else:
-            LOGGER.warning(f"{self.zone_name}: playlist index {idx} out of range")
+        self._cmd_indexed(command, self._ctrl.playlists, 'playlist', 'playlist')
 
     def cmd_say(self, command):
-        idx = _cmd_val(command)
-        tts = self._ctrl.tts_phrases
-        if idx < len(tts):
-            # Jishi /say blocks until TTS finishes — run in background so
-            # subsequent commands (play/pause etc.) aren't queued behind it.
-            threading.Thread(
-                target=self._cmd, args=(f"say/{_enc(tts[idx])}",),
-                daemon=True).start()
-        else:
-            LOGGER.warning(f"{self.zone_name}: TTS index {idx} not configured")
+        # Jishi /say blocks until TTS finishes — run in background so
+        # subsequent commands (play/pause etc.) aren't queued behind it.
+        self._cmd_indexed(command, self._ctrl.tts_phrases, 'say', 'TTS phrase', threaded=True)
 
     def cmd_sleep(self, command):
         minutes = _cmd_val(command)
@@ -409,9 +407,10 @@ class SpeakerNode(udi_interface.Node):
 
     def cmd_party(self, command):
         """Join all other zones to this one."""
-        for name in self._ctrl.zone_names:
-            if name != self.zone_name:
-                _jishi_cmd(self.jishi_url, f"/{_enc(name)}/join/{self._zp}")
+        others = [n for n in self._ctrl.zone_names if n != self.zone_name]
+        with ThreadPoolExecutor(max_workers=len(others) or 1) as ex:
+            for name in others:
+                ex.submit(_jishi_cmd, self.jishi_url, f"/{_enc(name)}/join/{self._zp}")
 
     # udi_interface calls fun(self, command) with unbound references
     commands = {
@@ -463,6 +462,7 @@ class Controller(udi_interface.Node):
         self._initialized = False
         self._controller_added = False   # True once controller node lands in ISY
         self._node_added = threading.Event()
+        self._pool = ThreadPoolExecutor(max_workers=8, thread_name_prefix='sonos')
 
         polyglot.subscribe(polyglot.START,        self.start)
         polyglot.subscribe(polyglot.CUSTOMPARAMS, self.param_handler)
@@ -492,6 +492,7 @@ class Controller(udi_interface.Node):
     def stop(self):
         LOGGER.info('Sonos Jishi NodeServer stopping')
         self.setDriver('ST', 0)
+        self._pool.shutdown(wait=False)
 
     def param_handler(self, params):
         self.poly.Notices.clear()
@@ -559,19 +560,28 @@ class Controller(udi_interface.Node):
                 self._add_node_wait(node)
                 self._speakers[address] = node
 
-            coordinator = zone.get('coordinator', zone)
-            self._speakers[address].update_from_state(coordinator.get('state', coordinator))
-            self._speakers[address].update_group_state(zone.get('groupState', {}))
+            self._apply_zone_state(zone)
 
         LOGGER.info(f"Discovery complete — {len(self._speakers)} zones")
 
+    def _apply_zone_state(self, zone):
+        """Update a speaker node's drivers from a Jishi zone dict."""
+        zone_name = _zone_room_name(zone)
+        if not zone_name:
+            return
+        address = _zone_address(zone_name)
+        if address not in self._speakers:
+            return
+        coordinator = zone.get('coordinator', zone)
+        self._speakers[address].update_from_state(coordinator.get('state', coordinator))
+        self._speakers[address].update_group_state(zone.get('groupState', {}))
+
     def _refresh_content(self, force=False):
         """Fetch favorites/playlists from Jishi; update ISY profile if changed."""
-        with ThreadPoolExecutor(max_workers=2) as ex:
-            favs_f = ex.submit(_jishi_get, self._jishi_url, '/favorites')
-            pls_f  = ex.submit(_jishi_get, self._jishi_url, '/playlists')
-            new_favs = favs_f.result() or []
-            new_pls  = pls_f.result() or []
+        favs_f = self._pool.submit(_jishi_get, self._jishi_url, '/favorites')
+        pls_f  = self._pool.submit(_jishi_get, self._jishi_url, '/playlists')
+        new_favs = favs_f.result() or []
+        new_pls  = pls_f.result() or []
         if not isinstance(new_favs, list): new_favs = []
         if not isinstance(new_pls, list):  new_pls = []
 
@@ -609,14 +619,7 @@ class Controller(udi_interface.Node):
             LOGGER.warning('Short poll: could not reach Jishi')
             return
         for zone in zones:
-            zone_name = _zone_room_name(zone)
-            if not zone_name:
-                continue
-            address = _zone_address(zone_name)
-            if address in self._speakers:
-                coordinator = zone.get('coordinator', zone)
-                self._speakers[address].update_from_state(coordinator.get('state', coordinator))
-                self._speakers[address].update_group_state(zone.get('groupState', {}))
+            self._apply_zone_state(zone)
 
     def _long_poll(self):
         LOGGER.debug('Long poll: refreshing content lists')
@@ -630,16 +633,20 @@ class Controller(udi_interface.Node):
         _jishi_cmd(self._jishi_url, '/resumeall')
 
     def cmd_ungroup_all(self, command):
-        for name in self.zone_names:
-            _jishi_cmd(self._jishi_url, f"/{_enc(name)}/leave")
+        with ThreadPoolExecutor(max_workers=len(self.zone_names) or 1) as ex:
+            for name in self.zone_names:
+                ex.submit(_jishi_cmd, self._jishi_url, f"/{_enc(name)}/leave")
 
     def cmd_party_all(self, command):
         """Join all zones to the first zone (party mode)."""
         if not self.zone_names:
             return
         host = self.zone_names[0]
-        for name in self.zone_names[1:]:
-            _jishi_cmd(self._jishi_url, f"/{_enc(name)}/join/{_enc(host)}")
+        enc_host = _enc(host)
+        others = self.zone_names[1:]
+        with ThreadPoolExecutor(max_workers=len(others) or 1) as ex:
+            for name in others:
+                ex.submit(_jishi_cmd, self._jishi_url, f"/{_enc(name)}/join/{enc_host}")
 
     def cmd_say_all(self, command):
         """Say a TTS phrase on all speakers."""

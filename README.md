@@ -25,6 +25,49 @@ MIT License — Polyglot v3 NodeServer for Sonos, using [node-sonos-http-api](ht
 - Jishi host must be on the same network as your Sonos speakers (or otherwise able to reach them)
 - Python 3.9+ with `requests` and `udi_interface`
 
+## Jishi Setup
+
+Jishi must run on a host that can reach your Sonos speakers via UPnP (typically the same VLAN).
+The easiest approach is Docker using the [`chrisns/docker-node-sonos-http-api`](https://github.com/chrisns/docker-node-sonos-http-api) image.
+
+### First-time setup
+
+```bash
+DATA_DIR=/docker/node-sonos-http-api
+
+mkdir -p "$DATA_DIR/clips" "$DATA_DIR/cache" "$DATA_DIR/presets"
+
+docker run \
+  --net=host \
+  --name sonos \
+  --restart=always \
+  -d \
+  -v "$DATA_DIR/settings.json:/app/settings.json" \
+  -v "$DATA_DIR/clips:/app/static/clips" \
+  -v "$DATA_DIR/cache:/app/cache" \
+  -v "$DATA_DIR/presets:/app/presets" \
+  chrisns/docker-node-sonos-http-api
+```
+
+Jishi listens on port **5005** by default. Verify it's working:
+
+```bash
+curl http://localhost:5005/zones
+```
+
+### Upgrading
+
+Use the included `upgrade-sonos.sh` script. Edit the variables at the top to match your
+environment, then:
+
+```bash
+chmod +x upgrade-sonos.sh
+./upgrade-sonos.sh
+```
+
+The script pulls the latest image, stops and removes the old container, and starts a fresh one
+with the same volume mounts. Your settings, clips, and presets are preserved.
+
 ## Installation
 
 Install via the Polyglot v3 local store (requires UDI developer account), or clone directly on your eisy:
@@ -85,19 +128,21 @@ Favorites and playlists are **automatically fetched from Jishi** — no manual c
 
 | Command | Description |
 |---------|-------------|
-| Play / Pause / Stop | Transport control |
-| Next / Previous | Skip tracks |
-| Set Volume / Up / Down | Volume control |
-| Set Bass / Treble | EQ control |
-| Mute / Unmute | Mute toggle |
-| Shuffle On / Off | Shuffle control |
+| Set Volume | 0–100 |
+| Set Group Volume | 0–100 |
+| Set Bass / Treble | EQ (-10 to 10) |
+| Mute | On/off (with current value pre-filled) |
+| Shuffle | On/off |
 | Set Repeat | None / One / All |
-| Toggle Crossfade | Crossfade on/off |
+| Crossfade | On/off |
 | Play Favorite | Pick by name from ISY dropdown |
 | Play Playlist | Pick by name from ISY dropdown |
 | Say (TTS) | Speak a configured phrase on this speaker |
 | Sleep Timer | Off / 15 / 30 / 45 / 60 / 90 min |
 | Join Zone | Join this speaker's audio to any other zone (by name) |
+| Play / Pause | Toggle playback |
+| Next / Previous | Skip tracks |
+| Mute Toggle | Flip current mute state |
 | Leave Group | Remove this speaker from its current group |
 | Party Mode | Join all other zones to this speaker |
 
