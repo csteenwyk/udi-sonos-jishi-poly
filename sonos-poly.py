@@ -105,10 +105,10 @@ CUST_SLEEP-90 = 90 min
 
 _STATIC_EDITORS = """\
   <editor id="E_VOL">
-    <range uom="51" subset="0,100" step="1" prec="0"/>
+    <range uom="51" min="0" max="100" prec="0"/>
   </editor>
   <editor id="E_EQ">
-    <range uom="56" subset="-10,10" step="1" prec="0"/>
+    <range uom="56" min="-10" max="10" step="1"/>
   </editor>
   <editor id="E_PLAYBACK">
     <range uom="25" subset="0,1,2,3" nls="CUST_PB"/>
