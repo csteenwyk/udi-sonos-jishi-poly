@@ -375,7 +375,11 @@ class SpeakerNode(udi_interface.Node):
         idx = int(command.get('value', 0))
         tts = self._ctrl.tts_phrases
         if idx < len(tts):
-            self._cmd(f"say/{_enc(tts[idx])}")
+            # Jishi /say blocks until TTS finishes — run in background so
+            # subsequent commands (play/pause etc.) aren't queued behind it.
+            threading.Thread(
+                target=self._cmd, args=(f"say/{_enc(tts[idx])}",),
+                daemon=True).start()
         else:
             LOGGER.warning(f"{self.zone_name}: TTS index {idx} not configured")
 
@@ -630,7 +634,9 @@ class Controller(udi_interface.Node):
         idx = int(command.get('value', 0))
         if idx < len(self.tts_phrases):
             phrase = self.tts_phrases[idx]
-            _jishi_cmd(self._jishi_url, f"/sayall/{_enc(phrase)}")
+            threading.Thread(
+                target=_jishi_cmd, args=(self._jishi_url, f"/sayall/{_enc(phrase)}"),
+                daemon=True).start()
         else:
             LOGGER.warning(f"SAY_ALL: TTS index {idx} not configured")
 
