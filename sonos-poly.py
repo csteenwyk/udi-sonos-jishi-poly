@@ -15,6 +15,7 @@ import os
 import re
 import sys
 import threading
+from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import quote
 
 import requests
@@ -460,6 +461,7 @@ class Controller(udi_interface.Node):
         self.zone_names = []      # ordered list of zone room names for JOIN
         self._poll_lock = threading.Lock()
         self._initialized = False
+        self._controller_added = False   # True once controller node lands in ISY
         self._node_added = threading.Event()
 
         polyglot.subscribe(polyglot.START,        self.start)
@@ -536,9 +538,11 @@ class Controller(udi_interface.Node):
         # matching the tutorial pattern: updateProfile → addNode → wait ADDNODEDONE.
         self._refresh_content(force=True)
 
-        # Re-add controller (no-op if already in ISY; needed on first install).
-        self._add_node_wait(self)
-        self.setDriver('ST', 1)  # set after node is confirmed in ISY
+        # Add controller node only on first install; it persists across restarts.
+        if not self._controller_added:
+            self._add_node_wait(self)
+            self._controller_added = True
+        self.setDriver('ST', 1)
 
         # Add speaker nodes one at a time, waiting for each to land in ISY.
         for zone in zones:
@@ -563,8 +567,11 @@ class Controller(udi_interface.Node):
 
     def _refresh_content(self, force=False):
         """Fetch favorites/playlists from Jishi; update ISY profile if changed."""
-        new_favs = _jishi_get(self._jishi_url, '/favorites') or []
-        new_pls  = _jishi_get(self._jishi_url, '/playlists') or []
+        with ThreadPoolExecutor(max_workers=2) as ex:
+            favs_f = ex.submit(_jishi_get, self._jishi_url, '/favorites')
+            pls_f  = ex.submit(_jishi_get, self._jishi_url, '/playlists')
+            new_favs = favs_f.result() or []
+            new_pls  = pls_f.result() or []
         if not isinstance(new_favs, list): new_favs = []
         if not isinstance(new_pls, list):  new_pls = []
 
