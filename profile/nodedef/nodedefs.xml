@@ -59,6 +59,9 @@
         <cmd id="SET_MUTE">
           <p id="" editor="E_BOOL" init="GV4"/>
         </cmd>
+        <cmd id="SET_GRP_MUTE">
+          <p id="" editor="E_BOOL" init="GV5"/>
+        </cmd>
         <cmd id="SHUFFLE">
           <p id="" editor="E_BOOL" init="GV6"/>
         </cmd>
@@ -67,6 +70,15 @@
         </cmd>
         <cmd id="CROSSFADE">
           <p id="" editor="E_BOOL" init="GV8"/>
+        </cmd>
+        <cmd id="LOUDNESS">
+          <p id="" editor="E_BOOL" init="GV9"/>
+        </cmd>
+        <cmd id="NIGHTMODE">
+          <p id="" editor="E_BOOL" init="GV10"/>
+        </cmd>
+        <cmd id="SPEECH_ENH">
+          <p id="" editor="E_BOOL" init="GV11"/>
         </cmd>
         <cmd id="PLAY_FAVORITE">
           <p id="" editor="E_FAV"/>

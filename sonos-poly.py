@@ -75,9 +75,13 @@ CMD-sonos_speaker-SET_GRP_VOL-NAME = Set Group Volume
 CMD-sonos_speaker-SET_BASS-NAME = Set Bass
 CMD-sonos_speaker-SET_TREBLE-NAME = Set Treble
 CMD-sonos_speaker-SET_MUTE-NAME = Set Mute
+CMD-sonos_speaker-SET_GRP_MUTE-NAME = Set Group Mute
 CMD-sonos_speaker-SHUFFLE-NAME = Shuffle
 CMD-sonos_speaker-REPEAT-NAME = Set Repeat
 CMD-sonos_speaker-CROSSFADE-NAME = Crossfade
+CMD-sonos_speaker-LOUDNESS-NAME = Loudness
+CMD-sonos_speaker-NIGHTMODE-NAME = Night Mode
+CMD-sonos_speaker-SPEECH_ENH-NAME = Speech Enhancement
 CMD-sonos_speaker-PLAY_FAVORITE-NAME = Play Favorite
 CMD-sonos_speaker-PLAY_PLAYLIST-NAME = Play Playlist
 CMD-sonos_speaker-SAY-NAME = Say (TTS)
@@ -353,6 +357,9 @@ class SpeakerNode(udi_interface.Node):
     def cmd_set_mute(self, command):
         self._cmd('mute' if _cmd_val(command) else 'unmute')
 
+    def cmd_set_grp_mute(self, command):
+        self._cmd('groupMute' if _cmd_val(command) else 'groupUnmute')
+
     def cmd_shuffle(self, command):
         self._cmd('shuffle/on' if _cmd_val(command) else 'shuffle/off')
 
@@ -362,6 +369,15 @@ class SpeakerNode(udi_interface.Node):
 
     def cmd_crossfade(self, command):
         self._cmd('crossfade/on' if _cmd_val(command) else 'crossfade/off')
+
+    def cmd_loudness(self, command):
+        self._cmd('loudness/on' if _cmd_val(command) else 'loudness/off')
+
+    def cmd_nightmode(self, command):
+        self._cmd('nightMode/on' if _cmd_val(command) else 'nightMode/off')
+
+    def cmd_speech_enh(self, command):
+        self._cmd('speechEnhancement/on' if _cmd_val(command) else 'speechEnhancement/off')
 
     # --- Content (0-based index matches NLS CUST_FAV-N etc.) ---
     def _cmd_indexed(self, command, items, verb, label, threaded=False):
@@ -427,9 +443,13 @@ class SpeakerNode(udi_interface.Node):
         'SET_BASS':      cmd_set_bass,
         'SET_TREBLE':    cmd_set_treble,
         'SET_MUTE':      cmd_set_mute,
+        'SET_GRP_MUTE':  cmd_set_grp_mute,
         'SHUFFLE':       cmd_shuffle,
         'REPEAT':        cmd_repeat,
         'CROSSFADE':     cmd_crossfade,
+        'LOUDNESS':      cmd_loudness,
+        'NIGHTMODE':     cmd_nightmode,
+        'SPEECH_ENH':    cmd_speech_enh,
         'PLAY_FAVORITE': cmd_play_favorite,
         'PLAY_PLAYLIST': cmd_play_playlist,
         'SAY':           cmd_say,
