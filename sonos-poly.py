@@ -64,15 +64,17 @@ ST-sonos_speaker-GV11-NAME = Speech Enhancement
 ST-sonos_speaker-GV12-NAME = Members
 
 # Speaker Commands
-CMD-sonos_speaker-PLAY_PAUSE-NAME = Play / Pause
+CMD-sonos_speaker-PLAY-NAME = Play
+CMD-sonos_speaker-PAUSE-NAME = Pause
 CMD-sonos_speaker-NEXT-NAME = Next Track
 CMD-sonos_speaker-PREV-NAME = Previous Track
-CMD-sonos_speaker-MUTE_TOGGLE-NAME = Mute Toggle
+CMD-sonos_speaker-MUTE-NAME = Mute
+CMD-sonos_speaker-UNMUTE-NAME = Unmute
 CMD-sonos_speaker-SET_VOL-NAME = Set Volume
 CMD-sonos_speaker-SET_GRP_VOL-NAME = Set Group Volume
 CMD-sonos_speaker-SET_BASS-NAME = Set Bass
 CMD-sonos_speaker-SET_TREBLE-NAME = Set Treble
-CMD-sonos_speaker-MUTE-NAME = Mute
+CMD-sonos_speaker-SET_MUTE-NAME = Set Mute
 CMD-sonos_speaker-SHUFFLE-NAME = Shuffle
 CMD-sonos_speaker-REPEAT-NAME = Set Repeat
 CMD-sonos_speaker-CROSSFADE-NAME = Crossfade
@@ -327,9 +329,10 @@ class SpeakerNode(udi_interface.Node):
             self.reportDrivers()
 
     # --- Transport ---
-    def cmd_playpause(self, command): self._cmd('playpause')
-    def cmd_next(self, command):      self._cmd('next')
-    def cmd_prev(self, command):      self._cmd('previous')
+    def cmd_play(self, command):  self._cmd('play')
+    def cmd_pause(self, command): self._cmd('pause')
+    def cmd_next(self, command):  self._cmd('next')
+    def cmd_prev(self, command):  self._cmd('previous')
 
     # --- Volume ---
     def cmd_set_vol(self, command):
@@ -343,12 +346,11 @@ class SpeakerNode(udi_interface.Node):
     def cmd_set_treble(self, command):
         self._cmd(f"treble/{_cmd_val(command)}")
 
-    # --- Play mode toggles (single command with bool param) ---
-    def cmd_mute_toggle(self, command):
-        current = self.getDriver('GV4')
-        self._cmd('unmute' if current else 'mute')
+    # --- Mute: explicit no-param buttons + bool-param SET_MUTE for programs ---
+    def cmd_mute(self, command):   self._cmd('mute')
+    def cmd_unmute(self, command): self._cmd('unmute')
 
-    def cmd_mute(self, command):
+    def cmd_set_mute(self, command):
         self._cmd('mute' if _cmd_val(command) else 'unmute')
 
     def cmd_shuffle(self, command):
@@ -414,15 +416,17 @@ class SpeakerNode(udi_interface.Node):
 
     # udi_interface calls fun(self, command) with unbound references
     commands = {
-        'PLAY_PAUSE':    cmd_playpause,
+        'PLAY':          cmd_play,
+        'PAUSE':         cmd_pause,
         'NEXT':          cmd_next,
-        'MUTE_TOGGLE':   cmd_mute_toggle,
         'PREV':          cmd_prev,
+        'MUTE':          cmd_mute,
+        'UNMUTE':        cmd_unmute,
         'SET_VOL':       cmd_set_vol,
         'SET_GRP_VOL':   cmd_set_group_vol,
         'SET_BASS':      cmd_set_bass,
         'SET_TREBLE':    cmd_set_treble,
-        'MUTE':          cmd_mute,
+        'SET_MUTE':      cmd_set_mute,
         'SHUFFLE':       cmd_shuffle,
         'REPEAT':        cmd_repeat,
         'CROSSFADE':     cmd_crossfade,

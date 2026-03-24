@@ -56,7 +56,7 @@
         <cmd id="SET_TREBLE">
           <p id="" editor="E_EQ" init="GV3"/>
         </cmd>
-        <cmd id="MUTE">
+        <cmd id="SET_MUTE">
           <p id="" editor="E_BOOL" init="GV4"/>
         </cmd>
         <cmd id="SHUFFLE">
@@ -84,10 +84,12 @@
           <p id="" editor="E_ZONES"/>
         </cmd>
         <!-- Commands without parameters (rendered as horizontal buttons) -->
-        <cmd id="PLAY_PAUSE"/>
+        <cmd id="PLAY"/>
+        <cmd id="PAUSE"/>
         <cmd id="NEXT"/>
         <cmd id="PREV"/>
-        <cmd id="MUTE_TOGGLE"/>
+        <cmd id="MUTE"/>
+        <cmd id="UNMUTE"/>
         <cmd id="LEAVE"/>
         <cmd id="PARTY"/>
         <cmd id="QUERY"/>

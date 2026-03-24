@@ -131,7 +131,7 @@ Favorites and playlists are **automatically fetched from Jishi** — no manual c
 | Set Volume | 0–100 |
 | Set Group Volume | 0–100 |
 | Set Bass / Treble | EQ (-10 to 10) |
-| Mute | On/off (with current value pre-filled) |
+| Set Mute | On/off (with current value pre-filled; useful in ISY programs) |
 | Shuffle | On/off |
 | Set Repeat | None / One / All |
 | Crossfade | On/off |
@@ -140,9 +140,10 @@ Favorites and playlists are **automatically fetched from Jishi** — no manual c
 | Say (TTS) | Speak a configured phrase on this speaker |
 | Sleep Timer | Off / 15 / 30 / 45 / 60 / 90 min |
 | Join Zone | Join this speaker's audio to any other zone (by name) |
-| Play / Pause | Toggle playback |
+| Play | Explicit play |
+| Pause | Explicit pause |
 | Next / Previous | Skip tracks |
-| Mute Toggle | Flip current mute state |
+| Mute / Unmute | Explicit mute and unmute |
 | Leave Group | Remove this speaker from its current group |
 | Party Mode | Join all other zones to this speaker |
 
