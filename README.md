@@ -88,7 +88,7 @@ Set these in the NodeServer's **Custom Parameters** in the PG3x UI:
 |-----|---------|-------------|
 | `jishi_url` | `http://192.168.1.100:5005` | URL of your Jishi server **(required)** |
 | `tts_1` … `tts_10` | `Dinner is ready` | TTS phrases for the SAY / SAY ALL commands |
-| `clip_1` … `clip_5` | `http://192.168.1.100:5005/static/clips/doorbell.mp3` | MP3 URLs for the CLIP / CLIP ALL commands |
+| `clip_1` … `clip_5` | `doorbell.mp3` | MP3 filename (or full URL) for the CLIP / CLIP ALL commands |
 
 Favorites and playlists are **automatically fetched from Jishi** — no manual configuration needed. They appear by name in the ISY UI and refresh on every long poll (default: every 2 minutes).
 
@@ -116,7 +116,7 @@ http://<jishi-host>:5005/static/clips/<filename>.mp3
 
 To add a doorbell sound:
 1. Copy your MP3 to `/path/to/clips/doorbell.mp3`
-2. Set `clip_1 = http://<jishi-host>:5005/static/clips/doorbell.mp3` in Custom Parameters
+2. Set `clip_1 = doorbell.mp3` in Custom Parameters (the plugin prepends `<jishi_url>/static/clips/` automatically, or use a full URL to host elsewhere)
 3. In an ISY program, use **Play Clip** with clip index 0 and your desired alert volume
 
 The clip plays at the specified volume, then Sonos returns to the previous source and volume automatically.
