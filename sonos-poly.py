@@ -45,11 +45,7 @@ CMD-sonos_controller-RESUME_ALL-NAME = Resume All
 CMD-sonos_controller-UNGROUP_ALL-NAME = Ungroup All
 CMD-sonos_controller-PARTY-NAME = Party Mode
 CMD-sonos_controller-SAY_ALL-NAME = Say All
-CMD-sonos_controller-SAY_ALL-phrase-NAME = Phrase
-CMD-sonos_controller-SAY_ALL-vol-NAME = Volume
 CMD-sonos_controller-CLIP_ALL-NAME = Play Clip All
-CMD-sonos_controller-CLIP_ALL-clip-NAME = Clip
-CMD-sonos_controller-CLIP_ALL-vol-NAME = Volume
 CMD-sonos_controller-REFRESH_CONTENT-NAME = Refresh Content
 
 # Speaker Drivers
@@ -91,11 +87,10 @@ CMD-sonos_speaker-SPEECH_ENH-NAME = Speech Enhancement
 CMD-sonos_speaker-PLAY_FAVORITE-NAME = Play Favorite
 CMD-sonos_speaker-PLAY_PLAYLIST-NAME = Play Playlist
 CMD-sonos_speaker-SAY-NAME = Say (TTS)
-CMD-sonos_speaker-SAY-phrase-NAME = Phrase
-CMD-sonos_speaker-SAY-vol-NAME = Volume
 CMD-sonos_speaker-CLIP-NAME = Play Clip
-CMD-sonos_speaker-CLIP-clip-NAME = Clip
-CMD-sonos_speaker-CLIP-vol-NAME = Volume
+CMDP-E_TTS:phrase = Phrase
+CMDP-E_VOL:vol = Volume
+CMDP-E_CLIP:clip = Clip
 CMD-sonos_speaker-SLEEP-NAME = Sleep Timer
 CMD-sonos_speaker-JOIN-NAME = Join Zone
 CMD-sonos_speaker-LEAVE-NAME = Leave Group
