@@ -45,7 +45,11 @@ CMD-sonos_controller-RESUME_ALL-NAME = Resume All
 CMD-sonos_controller-UNGROUP_ALL-NAME = Ungroup All
 CMD-sonos_controller-PARTY-NAME = Party Mode
 CMD-sonos_controller-SAY_ALL-NAME = Say All
+CMD-sonos_controller-SAY_ALL-phrase-NAME = Phrase
+CMD-sonos_controller-SAY_ALL-vol-NAME = Volume
 CMD-sonos_controller-CLIP_ALL-NAME = Play Clip All
+CMD-sonos_controller-CLIP_ALL-clip-NAME = Clip
+CMD-sonos_controller-CLIP_ALL-vol-NAME = Volume
 CMD-sonos_controller-REFRESH_CONTENT-NAME = Refresh Content
 
 # Speaker Drivers
@@ -63,6 +67,7 @@ ST-sonos_speaker-GV9-NAME = Loudness
 ST-sonos_speaker-GV10-NAME = Nightmode
 ST-sonos_speaker-GV11-NAME = Speech Enhancement
 ST-sonos_speaker-GV12-NAME = Members
+ST-sonos_speaker-GV13-NAME = Alert Volume
 
 # Speaker Commands
 CMD-sonos_speaker-PLAY-NAME = Play
@@ -86,7 +91,11 @@ CMD-sonos_speaker-SPEECH_ENH-NAME = Speech Enhancement
 CMD-sonos_speaker-PLAY_FAVORITE-NAME = Play Favorite
 CMD-sonos_speaker-PLAY_PLAYLIST-NAME = Play Playlist
 CMD-sonos_speaker-SAY-NAME = Say (TTS)
+CMD-sonos_speaker-SAY-phrase-NAME = Phrase
+CMD-sonos_speaker-SAY-vol-NAME = Volume
 CMD-sonos_speaker-CLIP-NAME = Play Clip
+CMD-sonos_speaker-CLIP-clip-NAME = Clip
+CMD-sonos_speaker-CLIP-vol-NAME = Volume
 CMD-sonos_speaker-SLEEP-NAME = Sleep Timer
 CMD-sonos_speaker-JOIN-NAME = Join Zone
 CMD-sonos_speaker-LEAVE-NAME = Leave Group
@@ -299,7 +308,8 @@ class SpeakerNode(udi_interface.Node):
         {'driver': 'GV9',  'value': 0, 'uom': 2},   # Loudness
         {'driver': 'GV10', 'value': 0, 'uom': 2},   # Nightmode
         {'driver': 'GV11', 'value': 0, 'uom': 2},   # Speech enhancement
-        {'driver': 'GV12', 'value': 0, 'uom': 56},  # Members in group
+        {'driver': 'GV12', 'value': 0,  'uom': 56},  # Members in group
+        {'driver': 'GV13', 'value': 50, 'uom': 51},  # Alert volume default (hidden)
     ]
 
     def __init__(self, polyglot, primary, address, name, zone_name, jishi_url, controller):
