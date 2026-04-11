@@ -45,6 +45,7 @@ CMD-sonos_controller-RESUME_ALL-NAME = Resume All
 CMD-sonos_controller-UNGROUP_ALL-NAME = Ungroup All
 CMD-sonos_controller-PARTY-NAME = Party Mode
 CMD-sonos_controller-SAY_ALL-NAME = Say All
+CMD-sonos_controller-CLIP_ALL-NAME = Play Clip All
 CMD-sonos_controller-REFRESH_CONTENT-NAME = Refresh Content
 
 # Speaker Drivers
@@ -85,6 +86,7 @@ CMD-sonos_speaker-SPEECH_ENH-NAME = Speech Enhancement
 CMD-sonos_speaker-PLAY_FAVORITE-NAME = Play Favorite
 CMD-sonos_speaker-PLAY_PLAYLIST-NAME = Play Playlist
 CMD-sonos_speaker-SAY-NAME = Say (TTS)
+CMD-sonos_speaker-CLIP-NAME = Play Clip
 CMD-sonos_speaker-SLEEP-NAME = Sleep Timer
 CMD-sonos_speaker-JOIN-NAME = Join Zone
 CMD-sonos_speaker-LEAVE-NAME = Leave Group
@@ -183,11 +185,21 @@ def _cmd_val(command):
     return int(command.get('value', 0))
 
 
+def _cmd_param(command, param_id, uom, default=0):
+    """Extract a named parameter from a multi-param ISY command dict.
+    Falls back to single-param 'value' format for backward compatibility."""
+    query = command.get('query', {})
+    key = f'{param_id}.uom{uom}'
+    if key in query:
+        return int(float(query[key]))
+    return int(command.get('value', default))
+
+
 def _subset(lst):
     return ','.join(str(i) for i in range(len(lst))) if lst else '0'
 
 
-def _write_profile_files(favorites, playlists, tts_phrases, zone_names):
+def _write_profile_files(favorites, playlists, tts_phrases, clip_uris, zone_names):
     """Write dynamic NLS and editors.xml, then call poly.updateProfile()."""
 
     # --- NLS ---
@@ -210,6 +222,13 @@ def _write_profile_files(favorites, playlists, tts_phrases, zone_names):
         lines.append(f'CUST_TTS-{i} = {phrase}')
     if not tts_phrases:
         lines.append('CUST_TTS-0 = (not configured)')
+
+    lines.append('\n# Dynamic — Clips')
+    for i, uri in enumerate(clip_uris):
+        label = uri.rsplit('/', 1)[-1] or uri  # use filename as label
+        lines.append(f'CUST_CLIP-{i} = {label}')
+    if not clip_uris:
+        lines.append('CUST_CLIP-0 = (not configured)')
 
     lines.append('\n# Dynamic — Zones (for Join)')
     for i, name in enumerate(zone_names):
@@ -239,6 +258,11 @@ def _write_profile_files(favorites, playlists, tts_phrases, zone_names):
     <range uom="25" subset="{_subset(tts_phrases)}" nls="CUST_TTS"/>
   </editor>
 
+  <!-- Dynamic — Clips (from custom params clip_1..clip_5) -->
+  <editor id="E_CLIP">
+    <range uom="25" subset="{_subset(clip_uris)}" nls="CUST_CLIP"/>
+  </editor>
+
   <!-- Dynamic — Zones (for Join command) -->
   <editor id="E_ZONES">
     <range uom="25" subset="{_subset(zone_names)}" nls="CUST_ZONE"/>
@@ -249,7 +273,7 @@ def _write_profile_files(favorites, playlists, tts_phrases, zone_names):
         f.write(editors_xml)
 
     LOGGER.info(f"Profile updated: {len(favorites)} favs, {len(playlists)} playlists, "
-                f"{len(tts_phrases)} TTS, {len(zone_names)} zones")
+                f"{len(tts_phrases)} TTS, {len(clip_uris)} clips, {len(zone_names)} zones")
 
 
 # ---------------------------------------------------------------------------
@@ -399,9 +423,28 @@ class SpeakerNode(udi_interface.Node):
         self._cmd_indexed(command, self._ctrl.playlists, 'playlist', 'playlist')
 
     def cmd_say(self, command):
-        # Jishi /say blocks until TTS finishes — run in background so
-        # subsequent commands (play/pause etc.) aren't queued behind it.
-        self._cmd_indexed(command, self._ctrl.tts_phrases, 'say', 'TTS phrase', threaded=True)
+        idx = _cmd_param(command, 'phrase', 25)
+        vol = _cmd_param(command, 'vol', 51)
+        if idx < len(self._ctrl.tts_phrases):
+            phrase = self._ctrl.tts_phrases[idx]
+            path = f"say/{_enc(phrase)}/en-us"
+            if vol > 0:
+                path += f"/{vol}"
+            threading.Thread(target=self._cmd, args=(path,), daemon=True).start()
+        else:
+            LOGGER.warning(f"{self.zone_name}: TTS index {idx} out of range")
+
+    def cmd_clip(self, command):
+        idx = _cmd_param(command, 'clip', 25)
+        vol = _cmd_param(command, 'vol', 51)
+        if idx < len(self._ctrl.clip_uris):
+            uri = self._ctrl.clip_uris[idx]
+            path = f"clip?uri={_enc(uri)}"
+            if vol > 0:
+                path += f"&volume={vol}"
+            threading.Thread(target=self._cmd, args=(path,), daemon=True).start()
+        else:
+            LOGGER.warning(f"{self.zone_name}: clip index {idx} out of range")
 
     def cmd_sleep(self, command):
         minutes = _cmd_val(command)
@@ -453,6 +496,7 @@ class SpeakerNode(udi_interface.Node):
         'PLAY_FAVORITE': cmd_play_favorite,
         'PLAY_PLAYLIST': cmd_play_playlist,
         'SAY':           cmd_say,
+        'CLIP':          cmd_clip,
         'SLEEP':         cmd_sleep,
         'JOIN':          cmd_join,
         'LEAVE':         cmd_leave,
@@ -481,6 +525,7 @@ class Controller(udi_interface.Node):
         self.favorites = []
         self.playlists = []
         self.tts_phrases = []
+        self.clip_uris = []
         self.zone_names = []      # ordered list of zone room names for JOIN
         self._poll_lock = threading.Lock()
         self._initialized = False
@@ -532,7 +577,11 @@ class Controller(udi_interface.Node):
             v for i in range(1, 11)
             if (v := params.get(f'tts_{i}', '').strip())
         ]
-        LOGGER.info(f"Jishi URL: {self._jishi_url}, TTS: {self.tts_phrases}")
+        self.clip_uris = [
+            v for i in range(1, 6)
+            if (v := params.get(f'clip_{i}', '').strip())
+        ]
+        LOGGER.info(f"Jishi URL: {self._jishi_url}, TTS: {self.tts_phrases}, Clips: {self.clip_uris}")
         self._initialized = False
         self.discover()
 
@@ -618,7 +667,7 @@ class Controller(udi_interface.Node):
         if changed:
             _write_profile_files(
                 self.favorites, self.playlists,
-                self.tts_phrases, self.zone_names)
+                self.tts_phrases, self.clip_uris, self.zone_names)
             self.poly.updateProfile()
             return True
         return False
@@ -674,14 +723,35 @@ class Controller(udi_interface.Node):
 
     def cmd_say_all(self, command):
         """Say a TTS phrase on all speakers."""
-        idx = _cmd_val(command)
+        idx = _cmd_param(command, 'phrase', 25)
+        vol = _cmd_param(command, 'vol', 51)
         if idx < len(self.tts_phrases):
             phrase = self.tts_phrases[idx]
+            path = f"sayall/{_enc(phrase)}"
+            if vol > 0:
+                path += f"/en-us/{vol}"
             threading.Thread(
-                target=_jishi_cmd, args=(self._jishi_url, f"/sayall/{_enc(phrase)}"),
+                target=_jishi_cmd, args=(self._jishi_url, f"/{path}"),
                 daemon=True).start()
         else:
             LOGGER.warning(f"SAY_ALL: TTS index {idx} not configured")
+
+    def cmd_clip_all(self, command):
+        """Play a clip on all speakers."""
+        idx = _cmd_param(command, 'clip', 25)
+        vol = _cmd_param(command, 'vol', 51)
+        if idx >= len(self.clip_uris):
+            LOGGER.warning(f"CLIP_ALL: clip index {idx} not configured")
+            return
+        uri = self.clip_uris[idx]
+        def _play(name):
+            path = f"clip?uri={_enc(uri)}"
+            if vol > 0:
+                path += f"&volume={vol}"
+            _jishi_cmd(self._jishi_url, f"/{_enc(name)}/{path}")
+        with ThreadPoolExecutor(max_workers=len(self.zone_names) or 1) as ex:
+            for name in self.zone_names:
+                ex.submit(_play, name)
 
     def cmd_refresh_content(self, command):
         """Manually trigger an immediate content refresh (favorites, playlists, TTS)."""
@@ -701,6 +771,7 @@ class Controller(udi_interface.Node):
         'UNGROUP_ALL':     cmd_ungroup_all,
         'PARTY':           cmd_party_all,
         'SAY_ALL':         cmd_say_all,
+        'CLIP_ALL':        cmd_clip_all,
         'REFRESH_CONTENT': cmd_refresh_content,
         'QUERY':           query,
     }

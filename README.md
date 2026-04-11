@@ -88,8 +88,38 @@ Set these in the NodeServer's **Custom Parameters** in the PG3x UI:
 |-----|---------|-------------|
 | `jishi_url` | `http://192.168.1.100:5005` | URL of your Jishi server **(required)** |
 | `tts_1` … `tts_10` | `Dinner is ready` | TTS phrases for the SAY / SAY ALL commands |
+| `clip_1` … `clip_5` | `http://192.168.1.100:5005/static/clips/doorbell.mp3` | MP3 URLs for the CLIP / CLIP ALL commands |
 
 Favorites and playlists are **automatically fetched from Jishi** — no manual configuration needed. They appear by name in the ISY UI and refresh on every long poll (default: every 2 minutes).
+
+## Hosting MP3 Clips
+
+The **Play Clip** command plays an MP3 at a specified volume, then automatically resumes whatever was playing at the previous volume. This is handled natively by Jishi — no extra logic in the plugin.
+
+### If you run Jishi in Docker
+
+If your Jishi container mounts a clips directory, place MP3 files there and reference them by URL.
+
+Example Docker run with a clips volume:
+```bash
+docker run --net=host --name sonos --restart=always -d \
+  -v /path/to/settings.json:/app/settings.json \
+  -v /path/to/clips:/app/static/clips \
+  -v /path/to/cache:/app/cache \
+  chrisns/docker-node-sonos-http-api
+```
+
+With that mount, any file you drop in `/path/to/clips/` on the host is accessible at:
+```
+http://<jishi-host>:5005/static/clips/<filename>.mp3
+```
+
+To add a doorbell sound:
+1. Copy your MP3 to `/path/to/clips/doorbell.mp3`
+2. Set `clip_1 = http://<jishi-host>:5005/static/clips/doorbell.mp3` in Custom Parameters
+3. In an ISY program, use **Play Clip** with clip index 0 and your desired alert volume
+
+The clip plays at the specified volume, then Sonos returns to the previous source and volume automatically.
 
 ## Nodes
 
@@ -101,7 +131,8 @@ Favorites and playlists are **automatically fetched from Jishi** — no manual c
 | Resume All | Resume all previously playing zones |
 | Ungroup All | Break every group — all zones become independent |
 | Party Mode | Join all zones to the first zone |
-| Say All | Speak a TTS phrase on every speaker simultaneously |
+| Say All | Speak a TTS phrase on every speaker simultaneously (phrase + volume) |
+| Play Clip All | Play an MP3 clip on every speaker simultaneously (clip + volume) |
 
 ### Speaker (one per Jishi zone)
 
@@ -137,7 +168,8 @@ Favorites and playlists are **automatically fetched from Jishi** — no manual c
 | Crossfade | On/off |
 | Play Favorite | Pick by name from ISY dropdown |
 | Play Playlist | Pick by name from ISY dropdown |
-| Say (TTS) | Speak a configured phrase on this speaker |
+| Say (TTS) | Speak a configured TTS phrase at a specified volume (0 = current volume) |
+| Play Clip | Play a configured MP3 at a specified volume, then resume previous playback |
 | Sleep Timer | Off / 15 / 30 / 45 / 60 / 90 min |
 | Join Zone | Join this speaker's audio to any other zone (by name) |
 | Play | Explicit play |
