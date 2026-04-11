@@ -96,28 +96,17 @@ Favorites and playlists are **automatically fetched from Jishi** — no manual c
 
 The **Play Clip** command plays an MP3 at a specified volume, then automatically resumes whatever was playing at the previous volume. This is handled natively by Jishi — no extra logic in the plugin.
 
-### If you run Jishi in Docker
-
-If your Jishi container mounts a clips directory, place MP3 files there and reference them by URL.
-
-Example Docker run with a clips volume:
-```bash
-docker run --net=host --name sonos --restart=always -d \
-  -v /path/to/settings.json:/app/settings.json \
-  -v /path/to/clips:/app/static/clips \
-  -v /path/to/cache:/app/cache \
-  chrisns/docker-node-sonos-http-api
-```
-
-With that mount, any file you drop in `/path/to/clips/` on the host is accessible at:
+If you run Jishi in Docker with a clips volume (as shown in the Docker setup above), any file you copy into the clips directory on the host is immediately accessible to Jishi at:
 ```
 http://<jishi-host>:5005/static/clips/<filename>.mp3
 ```
 
+**Permissions:** No special permissions needed. The Jishi container runs as root and can read any file you copy in regardless of ownership.
+
 To add a doorbell sound:
-1. Copy your MP3 to `/path/to/clips/doorbell.mp3`
-2. Set `clip_1 = doorbell.mp3` in Custom Parameters (the plugin prepends `<jishi_url>/static/clips/` automatically, or use a full URL to host elsewhere)
-3. In an ISY program, use **Play Clip** with clip index 0 and your desired alert volume
+1. Copy your MP3 into the clips directory on the host (e.g. `cp doorbell.mp3 /docker/node-sonos-http-api/clips/`)
+2. Set `clip_1 = doorbell.mp3` in Custom Parameters — the plugin prepends `<jishi_url>/static/clips/` automatically. Use a full `http://` URL if hosting elsewhere.
+3. In an ISY program, use **Play Clip**, select the clip, and set the alert volume
 
 The clip plays at the specified volume, then Sonos returns to the previous source and volume automatically.
 
