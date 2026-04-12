@@ -203,7 +203,7 @@ def _subset(lst):
     return ','.join(str(i) for i in range(len(lst))) if lst else '0'
 
 
-def _write_profile_files(favorites, playlists, tts_phrases, clip_uris, zone_names):
+def _write_profile_files(favorites, playlists, tts_phrases, clip_names, zone_names):
     """Write dynamic NLS and editors.xml, then call poly.updateProfile()."""
 
     # --- NLS ---
@@ -228,10 +228,9 @@ def _write_profile_files(favorites, playlists, tts_phrases, clip_uris, zone_name
         lines.append('CUST_TTS-0 = (not configured)')
 
     lines.append('\n# Dynamic — Clips')
-    for i, uri in enumerate(clip_uris):
-        label = uri.rsplit('/', 1)[-1] or uri  # use filename as label
-        lines.append(f'CUST_CLIP-{i} = {label}')
-    if not clip_uris:
+    for i, name in enumerate(clip_names):
+        lines.append(f'CUST_CLIP-{i} = {name}')
+    if not clip_names:
         lines.append('CUST_CLIP-0 = (not configured)')
 
     lines.append('\n# Dynamic — Zones (for Join)')
@@ -264,7 +263,7 @@ def _write_profile_files(favorites, playlists, tts_phrases, clip_uris, zone_name
 
   <!-- Dynamic — Clips (from custom params clip_1..clip_5) -->
   <editor id="E_CLIP">
-    <range uom="25" subset="{_subset(clip_uris)}" nls="CUST_CLIP"/>
+    <range uom="25" subset="{_subset(clip_names)}" nls="CUST_CLIP"/>
   </editor>
 
   <!-- Dynamic — Zones (for Join command) -->
@@ -277,7 +276,7 @@ def _write_profile_files(favorites, playlists, tts_phrases, clip_uris, zone_name
         f.write(editors_xml)
 
     LOGGER.info(f"Profile updated: {len(favorites)} favs, {len(playlists)} playlists, "
-                f"{len(tts_phrases)} TTS, {len(clip_uris)} clips, {len(zone_names)} zones")
+                f"{len(tts_phrases)} TTS, {len(clip_names)} clips, {len(zone_names)} zones")
 
 
 # ---------------------------------------------------------------------------
@@ -442,11 +441,11 @@ class SpeakerNode(udi_interface.Node):
     def cmd_clip(self, command):
         idx = _cmd_param(command, 'clip', 25)
         vol = _cmd_param(command, 'vol', 51)
-        if idx < len(self._ctrl.clip_uris):
-            uri = self._ctrl.clip_uris[idx]
-            path = f"clip?uri={_enc(uri)}"
+        if idx < len(self._ctrl.clip_names):
+            name = self._ctrl.clip_names[idx]
+            path = f"clip/{_enc(name)}"
             if vol > 0:
-                path += f"&volume={vol}"
+                path += f"/{vol}"
             threading.Thread(target=self._cmd, args=(path,), daemon=True).start()
         else:
             LOGGER.warning(f"{self.zone_name}: clip index {idx} out of range")
@@ -530,7 +529,7 @@ class Controller(udi_interface.Node):
         self.favorites = []
         self.playlists = []
         self.tts_phrases = []
-        self.clip_uris = []
+        self.clip_names = []
         self.zone_names = []      # ordered list of zone room names for JOIN
         self._poll_lock = threading.Lock()
         self._initialized = False
@@ -582,13 +581,11 @@ class Controller(udi_interface.Node):
             v for i in range(1, 11)
             if (v := params.get(f'tts_{i}', '').strip())
         ]
-        clips_base = f"{jishi_url}/clips"
-        self.clip_uris = [
-            v if v.startswith('http') else f"{clips_base}/{v}"
-            for i in range(1, 6)
+        self.clip_names = [
+            v for i in range(1, 6)
             if (v := params.get(f'clip_{i}', '').strip())
         ]
-        LOGGER.info(f"Jishi URL: {self._jishi_url}, TTS: {self.tts_phrases}, Clips: {self.clip_uris}")
+        LOGGER.info(f"Jishi URL: {self._jishi_url}, TTS: {self.tts_phrases}, Clips: {self.clip_names}")
         self._initialized = False
         self.discover()
 
@@ -674,7 +671,7 @@ class Controller(udi_interface.Node):
         if changed:
             _write_profile_files(
                 self.favorites, self.playlists,
-                self.tts_phrases, self.clip_uris, self.zone_names)
+                self.tts_phrases, self.clip_names, self.zone_names)
             self.poly.updateProfile()
             return True
         return False
@@ -747,14 +744,14 @@ class Controller(udi_interface.Node):
         """Play a clip on all speakers."""
         idx = _cmd_param(command, 'clip', 25)
         vol = _cmd_param(command, 'vol', 51)
-        if idx >= len(self.clip_uris):
+        if idx >= len(self.clip_names):
             LOGGER.warning(f"CLIP_ALL: clip index {idx} not configured")
             return
-        uri = self.clip_uris[idx]
+        clip = self.clip_names[idx]
         def _play(name):
-            path = f"clip?uri={_enc(uri)}"
+            path = f"clip/{_enc(clip)}"
             if vol > 0:
-                path += f"&volume={vol}"
+                path += f"/{vol}"
             _jishi_cmd(self._jishi_url, f"/{_enc(name)}/{path}")
         with ThreadPoolExecutor(max_workers=len(self.zone_names) or 1) as ex:
             for name in self.zone_names:

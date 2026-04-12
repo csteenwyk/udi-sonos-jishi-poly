@@ -96,16 +96,13 @@ Favorites and playlists are **automatically fetched from Jishi** — no manual c
 
 The **Play Clip** command plays an MP3 at a specified volume, then automatically resumes whatever was playing at the previous volume. This is handled natively by Jishi — no extra logic in the plugin.
 
-If you run Jishi in Docker with a clips volume (as shown in the Docker setup above), any file you copy into the clips directory on the host is immediately accessible to Jishi at:
-```
-http://<jishi-host>:5005/clips/<filename>.mp3
-```
+If you run Jishi in Docker with a clips volume (as shown in the Docker setup above), any file you copy into the clips directory on the host is immediately available to Jishi.
 
 **Permissions:** No special permissions needed. The Jishi container runs as root and can read any file you copy in regardless of ownership.
 
 To add a doorbell sound:
 1. Copy your MP3 into the clips directory on the host (e.g. `cp doorbell.mp3 /docker/node-sonos-http-api/clips/`)
-2. Set `clip_1 = doorbell.mp3` in Custom Parameters — the plugin prepends `<jishi_url>/clips/` automatically. Use a full `http://` URL if hosting elsewhere.
+2. Set `clip_1 = doorbell.mp3` in Custom Parameters (just the filename — Jishi looks it up locally)
 3. In an ISY program, use **Play Clip**, select the clip, and set the alert volume
 
 The clip plays at the specified volume, then Sonos returns to the previous source and volume automatically.
