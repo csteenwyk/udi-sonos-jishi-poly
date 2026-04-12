@@ -63,10 +63,10 @@ CMDP-vol-NAME = Volume
 CMDP-E_VOL-vol-NAME = Volume
 
 # Program content display format for multi-param commands
-PGM-CMD-SAY-FMT = /phrase// ${v}/ /vol// at ${v}%/
-PGM-CMD-CLIP-FMT = /clip// ${v}/ /vol// at ${v}%/
-PGM-CMD-SAY_ALL-FMT = /phrase// ${v}/ /vol// at ${v}%/
-PGM-CMD-CLIP_ALL-FMT = /clip// ${v}/ /vol// at ${v}%/
+PGM-CMD-SAY-FMT = /phrase// ${v}/ /vol// at ${v}/
+PGM-CMD-CLIP-FMT = /clip// ${v}/ /vol// at ${v}/
+PGM-CMD-SAY_ALL-FMT = /phrase// ${v}/ /vol// at ${v}/
+PGM-CMD-CLIP_ALL-FMT = /clip// ${v}/ /vol// at ${v}/
 CMD-sonos_speaker-SLEEP-NAME = Sleep Timer
 CMD-sonos_speaker-JOIN-NAME = Join Zone
 CMD-sonos_speaker-LEAVE-NAME = Leave Group

@@ -449,6 +449,7 @@ class SpeakerNode(udi_interface.Node):
             path = f"say/{_enc(phrase)}/en-us"
             if vol > 0:
                 path += f"/{vol}"
+                self.setDriver('GV13', vol)
             threading.Thread(target=self._cmd, args=(path,), kwargs={'timeout': 60}, daemon=True).start()
         else:
             LOGGER.warning(f"{self.zone_name}: TTS index {idx} out of range")
@@ -461,6 +462,7 @@ class SpeakerNode(udi_interface.Node):
             path = f"clip/{_enc(name)}"
             if vol > 0:
                 path += f"/{vol}"
+                self.setDriver('GV13', vol)
             threading.Thread(target=self._cmd, args=(path,), kwargs={'timeout': 300}, daemon=True).start()
         else:
             LOGGER.warning(f"{self.zone_name}: clip index {idx} out of range")
