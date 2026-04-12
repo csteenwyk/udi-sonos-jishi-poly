@@ -582,7 +582,7 @@ class Controller(udi_interface.Node):
             v for i in range(1, 11)
             if (v := params.get(f'tts_{i}', '').strip())
         ]
-        clips_base = f"{jishi_url}/static/clips"
+        clips_base = f"{jishi_url}/clips"
         self.clip_uris = [
             v if v.startswith('http') else f"{clips_base}/{v}"
             for i in range(1, 6)
