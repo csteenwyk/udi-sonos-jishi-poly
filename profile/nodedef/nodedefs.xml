@@ -16,12 +16,12 @@
         <cmd id="PARTY"/>
         <cmd id="REFRESH_CONTENT"/>
         <cmd id="SAY_ALL">
-          <p id="phrase" editor="E_TTS"/>
-          <p id="vol" editor="E_VOL"/>
+          <p id="" editor="E_TTS"/>
+          <p id="" editor="E_VOL"/>
         </cmd>
         <cmd id="CLIP_ALL">
-          <p id="clip" editor="E_CLIP"/>
-          <p id="vol" editor="E_VOL"/>
+          <p id="" editor="E_CLIP"/>
+          <p id="" editor="E_VOL"/>
         </cmd>
       </accepts>
     </cmds>
@@ -93,12 +93,12 @@
           <p id="" editor="E_PLAYLIST"/>
         </cmd>
         <cmd id="SAY">
-          <p id="phrase" editor="E_TTS"/>
-          <p id="vol" editor="E_VOL" init="GV13"/>
+          <p id="" editor="E_TTS"/>
+          <p id="" editor="E_VOL" init="GV13"/>
         </cmd>
         <cmd id="CLIP">
-          <p id="clip" editor="E_CLIP"/>
-          <p id="vol" editor="E_VOL" init="GV13"/>
+          <p id="" editor="E_CLIP"/>
+          <p id="" editor="E_VOL" init="GV13"/>
         </cmd>
         <cmd id="SLEEP">
           <p id="" editor="E_SLEEP"/>

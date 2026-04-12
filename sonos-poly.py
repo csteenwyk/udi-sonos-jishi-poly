@@ -190,10 +190,16 @@ def _cmd_val(command):
 
 
 def _cmd_param(command, param_id, uom, default=0):
-    """Extract a named parameter from a multi-param ISY command dict.
-    Falls back to single-param 'value' format for backward compatibility."""
+    """Extract a parameter from a multi-param ISY command dict.
+    Handles both named params (id='phrase') and unnamed params (id=''),
+    falling back to single-param 'value' format."""
     query = command.get('query', {})
+    # Named param: phrase.uom25
     key = f'{param_id}.uom{uom}'
+    if key in query:
+        return int(float(query[key]))
+    # Unnamed param (id=""): .uom25
+    key = f'.uom{uom}'
     if key in query:
         return int(float(query[key]))
     return int(command.get('value', default))
