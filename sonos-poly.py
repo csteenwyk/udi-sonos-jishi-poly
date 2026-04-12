@@ -582,7 +582,7 @@ class Controller(udi_interface.Node):
             if (v := params.get(f'tts_{i}', '').strip())
         ]
         self.clip_names = [
-            v for i in range(1, 6)
+            v for i in range(1, 21)
             if (v := params.get(f'clip_{i}', '').strip())
         ]
         LOGGER.info(f"Jishi URL: {self._jishi_url}, TTS: {self.tts_phrases}, Clips: {self.clip_names}")
