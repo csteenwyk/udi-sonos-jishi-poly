@@ -329,8 +329,8 @@ class SpeakerNode(udi_interface.Node):
         self._zp = _enc(zone_name)
         self._driver_cache: dict = {}
 
-    def _cmd(self, path):
-        return _jishi_cmd(self.jishi_url, f"/{self._zp}/{path}")
+    def _cmd(self, path, timeout=5):
+        return _jishi_cmd(self.jishi_url, f"/{self._zp}/{path}", timeout=timeout)
 
     def _set(self, driver, value):
         """setDriver with change detection — skips ISY update when value unchanged."""
@@ -449,7 +449,7 @@ class SpeakerNode(udi_interface.Node):
             path = f"say/{_enc(phrase)}/en-us"
             if vol > 0:
                 path += f"/{vol}"
-            threading.Thread(target=self._cmd, args=(path,), daemon=True).start()
+            threading.Thread(target=self._cmd, args=(path,), kwargs={'timeout': 60}, daemon=True).start()
         else:
             LOGGER.warning(f"{self.zone_name}: TTS index {idx} out of range")
 
@@ -461,7 +461,7 @@ class SpeakerNode(udi_interface.Node):
             path = f"clip/{_enc(name)}"
             if vol > 0:
                 path += f"/{vol}"
-            threading.Thread(target=self._cmd, args=(path,), daemon=True).start()
+            threading.Thread(target=self._cmd, args=(path,), kwargs={'timeout': 300}, daemon=True).start()
         else:
             LOGGER.warning(f"{self.zone_name}: clip index {idx} out of range")
 
@@ -767,7 +767,7 @@ class Controller(udi_interface.Node):
             path = f"clip/{_enc(clip)}"
             if vol > 0:
                 path += f"/{vol}"
-            _jishi_cmd(self._jishi_url, f"/{_enc(name)}/{path}")
+            _jishi_cmd(self._jishi_url, f"/{_enc(name)}/{path}", timeout=300)
         with ThreadPoolExecutor(max_workers=len(self.zone_names) or 1) as ex:
             for name in self.zone_names:
                 ex.submit(_play, name)
