@@ -318,7 +318,7 @@ class SpeakerNode(udi_interface.Node):
         {'driver': 'GV10', 'value': 0, 'uom': 2},   # Nightmode
         {'driver': 'GV11', 'value': 0, 'uom': 2},   # Speech enhancement
         {'driver': 'GV12', 'value': 0,  'uom': 56},  # Members in group
-        {'driver': 'GV13', 'value': 50, 'uom': 51},  # Alert volume default (hidden)
+        {'driver': 'GV13', 'value': 25, 'uom': 51},  # Alert volume default (hidden)
     ]
 
     def __init__(self, polyglot, primary, address, name, zone_name, jishi_url, controller):
