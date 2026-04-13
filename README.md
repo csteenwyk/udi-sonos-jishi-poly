@@ -88,7 +88,7 @@ Set these in the NodeServer's **Custom Parameters** in the PG3x UI:
 |-----|---------|-------------|
 | `jishi_url` | `http://192.168.1.100:5005` | URL of your Jishi server **(required)** |
 | `tts_1` … `tts_10` | `Dinner is ready` | TTS phrases for the SAY / SAY ALL commands |
-| `clip_1` … `clip_5` | `doorbell.mp3` | MP3 filename (or full URL) for the CLIP / CLIP ALL commands |
+| `clip_1` … `clip_20` | `doorbell.mp3` | MP3 filename for the CLIP / CLIP ALL commands |
 
 Favorites and playlists are **automatically fetched from Jishi** — no manual configuration needed. They appear by name in the ISY UI and refresh on every long poll (default: every 2 minutes).
 
@@ -140,6 +140,7 @@ The clip plays at the specified volume, then Sonos returns to the previous sourc
 | GV10 | Nightmode |
 | GV11 | Speech Enhancement |
 | GV12 | Members in group |
+| GV13 | Alert Volume (default volume for Play Clip / Say commands) |
 
 **Commands:**
 
