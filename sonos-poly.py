@@ -595,7 +595,7 @@ class Controller(udi_interface.Node):
 
         self._jishi_url = jishi_url
         self.tts_phrases = [
-            v for i in range(1, 11)
+            v for i in range(1, 21)
             if (v := params.get(f'tts_{i}', '').strip())
         ]
         self.clip_names = [
