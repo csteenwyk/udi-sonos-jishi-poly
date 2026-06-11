@@ -15,6 +15,7 @@ import os
 import re
 import sys
 import threading
+import time
 from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import quote
 
@@ -162,6 +163,14 @@ PLAYBACK_MAP = {
 }
 
 REPEAT_MAP = {'none': 0, 'one': 1, 'all': 2}
+
+# Watchdog — self-heal a wedged plugin. If short polls keep failing to reach
+# Jishi (e.g. requests raising [Errno 51] Network is unreachable from inside
+# this process even though the host is fine), ask Polyglot to restart us —
+# the same fix as a manual reboot. Brief blips self-recover before the
+# threshold trips; the cooldown stops a reboot loop when Jishi is truly down.
+_WATCHDOG_DEFAULT_MIN = 5         # minutes of *continuous* failure → restart
+_RESTART_COOLDOWN_SECS = 1800     # don't auto-restart more than once per 30 min
 
 
 def _jishi_get(base_url, path, timeout=5):
@@ -554,8 +563,14 @@ class Controller(udi_interface.Node):
         self._node_added = threading.Event()
         self._pool = ThreadPoolExecutor(max_workers=8, thread_name_prefix='sonos')
 
+        # Watchdog state
+        self._fail_since = None          # epoch of first failure in current streak
+        self._watchdog_secs = _WATCHDOG_DEFAULT_MIN * 60
+        self._customdata = udi_interface.Custom(polyglot, 'customdata')
+
         polyglot.subscribe(polyglot.START,        self.start)
         polyglot.subscribe(polyglot.CUSTOMPARAMS, self.param_handler)
+        polyglot.subscribe(polyglot.CUSTOMDATA,   self._customdata_handler)
         polyglot.subscribe(polyglot.POLL,         self.poll)
         polyglot.subscribe(polyglot.STOP,         self.stop)
         polyglot.subscribe(polyglot.ADDNODEDONE,  self._on_node_added)
@@ -566,6 +581,10 @@ class Controller(udi_interface.Node):
         """Called by udi_interface when a node is fully added to ISY."""
         LOGGER.debug(f"ADDNODEDONE: {data}")
         self._node_added.set()
+
+    def _customdata_handler(self, data):
+        """Load persisted state (e.g. last auto-restart time) from Polyglot."""
+        self._customdata.load(data)
 
     def _add_node_wait(self, node, timeout=15):
         """Add a node and wait for ISY to confirm it before continuing."""
@@ -602,7 +621,15 @@ class Controller(udi_interface.Node):
             v for i in range(1, 21)
             if (v := params.get(f'clip_{i}', '').strip())
         ]
-        LOGGER.info(f"Jishi URL: {self._jishi_url}, TTS: {self.tts_phrases}, Clips: {self.clip_names}")
+        # Optional: minutes of continuous unreachability before self-restart.
+        # 0 disables the watchdog.
+        try:
+            wd_min = int(params.get('watchdog_minutes', '').strip() or _WATCHDOG_DEFAULT_MIN)
+        except ValueError:
+            wd_min = _WATCHDOG_DEFAULT_MIN
+        self._watchdog_secs = max(0, wd_min) * 60
+        LOGGER.info(f"Jishi URL: {self._jishi_url}, TTS: {self.tts_phrases}, Clips: {self.clip_names}, "
+                    f"watchdog: {wd_min} min")
         self._initialized = False
         self.discover()
 
@@ -624,6 +651,7 @@ class Controller(udi_interface.Node):
 
         self.poly.Notices.clear()
         self._initialized = True
+        self._note_poll(True)   # reachable — reset any in-progress failure streak
 
         # Collect zone names for JOIN support (must be done before _refresh_content
         # so the CUST_ZONE editor is populated correctly).
@@ -711,13 +739,55 @@ class Controller(udi_interface.Node):
         zones = _jishi_get(self._jishi_url, '/zones')
         if zones is None:
             LOGGER.warning('Short poll: could not reach Jishi')
+            self._note_poll(False)
             return
+        self._note_poll(True)
         for zone in zones:
             self._apply_zone_state(zone)
 
     def _long_poll(self):
         LOGGER.debug('Long poll: refreshing content lists')
         self._refresh_content()
+
+    # --- Watchdog ---
+    def _note_poll(self, ok):
+        """Track Jishi reachability and self-heal a wedged plugin.
+
+        A brief outage clears here before _watchdog_secs elapses, so nothing
+        happens. A sustained outage (the process stuck throwing connection
+        errors) trips _trigger_restart, which asks Polyglot to restart us —
+        the automatic equivalent of a manual plugin reboot."""
+        if ok:
+            if self._fail_since is not None:
+                LOGGER.info('Jishi reachable again — clearing failure streak')
+                self._fail_since = None
+                self.poly.Notices.delete('jishi')
+            return
+
+        now = time.time()
+        if self._fail_since is None:
+            self._fail_since = now
+        down_for = now - self._fail_since
+        self.poly.Notices['jishi'] = (
+            f"Cannot reach Jishi at {self._jishi_url} — down {int(down_for)}s")
+        if self._watchdog_secs and down_for >= self._watchdog_secs:
+            self._trigger_restart(down_for)
+
+    def _trigger_restart(self, down_for):
+        """Ask Polyglot to restart this nodeserver, guarded by a cooldown so a
+        truly-down backend doesn't cause a restart loop."""
+        now = time.time()
+        last = float(self._customdata['last_restart'] or 0)
+        if now - last < _RESTART_COOLDOWN_SECS:
+            LOGGER.warning(
+                f"Jishi still unreachable ({int(down_for)}s) but auto-restarted "
+                f"{int(now - last)}s ago — holding (backend likely down).")
+            return
+        LOGGER.error(
+            f"Jishi unreachable for {int(down_for)}s — asking Polyglot to "
+            f"restart the nodeserver (self-heal).")
+        self._customdata['last_restart'] = now
+        self.poly.restart()
 
     # --- Global commands ---
     def cmd_pause_all(self, command):

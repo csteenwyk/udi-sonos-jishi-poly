@@ -89,6 +89,7 @@ Set these in the NodeServer's **Custom Parameters** in the PG3x UI:
 | `jishi_url` | `http://192.168.1.100:5005` | URL of your Jishi server **(required)** |
 | `tts_1` … `tts_20` | `Dinner is ready` | TTS phrases for the SAY / SAY ALL commands |
 | `clip_1` … `clip_20` | `doorbell.mp3` | MP3 filename for the CLIP / CLIP ALL commands |
+| `watchdog_minutes` | `5` | Minutes Jishi may stay continuously unreachable before the nodeserver auto-restarts itself to recover a wedged connection. Default `5`; set `0` to disable. |
 
 Favorites and playlists are **automatically fetched from Jishi** — no manual configuration needed. They appear by name in the ISY UI and refresh on every long poll (default: every 2 minutes).
 
