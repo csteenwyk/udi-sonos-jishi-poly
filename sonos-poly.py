@@ -604,7 +604,14 @@ class Controller(udi_interface.Node):
         self._pool.shutdown(wait=False)
 
     def param_handler(self, params):
-        self.poly.Notices.clear()
+        # PG3 always publishes CUSTOMPARAMS at startup, but with a None payload
+        # when it has nothing stored; params.get() would raise in this thread.
+        if not params:
+            LOGGER.warning('CUSTOMPARAMS with no data — keeping existing params')
+            return
+        # Targeted delete, not clear() — clear() also wiped an active 'jishi'
+        # outage notice every time params were saved.
+        self.poly.Notices.delete('config')
 
         jishi_url = params.get('jishi_url', '').strip().rstrip('/')
         if not jishi_url:
@@ -649,7 +656,10 @@ class Controller(udi_interface.Node):
             self.poly.Notices['jishi'] = f"Cannot reach Jishi at {self._jishi_url}"
             return
 
-        self.poly.Notices.clear()
+        # Only clear the reachability notice. clear() would also wipe the
+        # 'config' notice that tells the user jishi_url is unset — which the
+        # shortPoll rediscovery path can now reach with a stale URL.
+        self.poly.Notices.delete('jishi')
         self._initialized = True
         self._note_poll(True)   # reachable — reset any in-progress failure streak
 
@@ -742,6 +752,15 @@ class Controller(udi_interface.Node):
             self._note_poll(False)
             return
         self._note_poll(True)
+        # Jishi is reachable but discovery never completed — e.g. Jishi was
+        # down when we started, so _do_discover bailed and nothing re-ran it.
+        # Without this the plugin looks perfectly healthy (notice cleared by
+        # _note_poll, watchdog satisfied) while having no speaker nodes at all.
+        # The poll lock is already held here, and _do_discover doesn't take it.
+        if not self._initialized:
+            LOGGER.warning('Jishi reachable but no speakers discovered — discovering now')
+            self._do_discover()
+            return
         for zone in zones:
             self._apply_zone_state(zone)
 
