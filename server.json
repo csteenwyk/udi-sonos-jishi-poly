@@ -10,6 +10,7 @@
     "logLevel": "INFO",
     "customParams": {
         "jishi_url": "http://localhost:5005",
+        "watchdog_minutes": "5",
         "tts_1": "",
         "tts_2": "",
         "tts_3": "",
